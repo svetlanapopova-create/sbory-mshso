@@ -99,6 +99,47 @@ header{display:flex;flex-direction:column;gap:12px}
 .hrs{white-space:nowrap}
 .hrs small{display:block;color:var(--muted);font-size:11px}
 
+/* телефон: день списком, команда карточками */
+.agenda,.staffm{display:none}
+.daypick{display:flex;gap:6px}
+.daypick button{flex:1;font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;cursor:pointer;min-width:0}
+.daypick button span{font-size:11px;font-weight:400;color:var(--muted)}
+.daypick button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.daypick button[aria-pressed="true"] span{color:var(--bg)}
+.daypick button:focus-visible{outline:2px solid var(--train);outline-offset:1px}
+.ag{margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ag li{list-style:none;display:grid;grid-template-columns:92px 1fr;gap:10px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--c) var(--tint),var(--surface));border:1px solid color-mix(in srgb,var(--c) 35%,transparent)}
+.ag li.pre{background:var(--surface);border:1.5px dashed color-mix(in srgb,var(--c) 75%,transparent)}
+.ag li.meal{background:transparent;border:1px solid var(--line);color:var(--muted);padding-block:6px}
+.ag .tm{font-family:var(--f-mono);font-size:12.5px;color:color-mix(in srgb,var(--c) 80%,var(--ink));padding-top:1px}
+.ag li.meal .tm{color:var(--muted)}
+.ag b{font-weight:600}
+.ag small{display:block;color:var(--muted);font-size:12px}
+.ag .warn{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--warn);color:var(--surface);font-size:11px;font-weight:700;margin-left:4px;vertical-align:1px}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.pc small{color:var(--muted);font-size:12px}
+.pc ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13.5px}
+.pc li{display:flex;gap:10px}
+.pc li>span:first-child{width:24px;color:var(--muted)}
+.pc .s{font-family:var(--f-mono);font-size:12.5px;color:color-mix(in srgb,var(--c) 80%,var(--ink))}
+.pc .d{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+@media (max-width:640px){
+  .weekwrap,.staffwrap{display:none}
+  .agenda{display:flex;flex-direction:column;gap:12px}
+  .staffm{display:flex;flex-direction:column;gap:10px}
+  .wrap{gap:28px;padding-block:20px 48px}
+  .tabs{margin-block:-10px -12px}
+  .tab{padding:7px 10px;font-size:13px}
+  .legend{gap:6px}
+  .legend .chip{font-size:11.5px}
+  .sum{grid-template-columns:1fr 1fr}
+  .tbl.minw{min-width:0}
+  #agree tr:first-child{display:none}
+  #agree tr{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  #agree tr:last-child{border-bottom:0}
+  #agree td{border:0;padding:0}
+  #agree td:not(:first-child){font-size:13px;color:var(--muted)}
+}
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 </style>
 
@@ -124,7 +165,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     <span class="chip" style="--c:var(--ext)"><i></i>Бассейн, биоимпеданс</span>
     <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно, до согласования</span>
   </div>
-  <div class="scroll"><div class="week" id="week"></div></div>
+  <div class="agenda"><div class="daypick" id="daypick" role="group" aria-label="День"></div><ul class="ag" id="ag"></ul></div>
+  <div class="scroll weekwrap"><div class="week" id="week"></div></div>
   <div class="sumwrap"><div class="sum" id="sum"></div><div class="sum" id="sum2"></div></div>
   <p class="note">Без учёта обедов, ужинов и биоимпеданса. Во вторник с 12:00 биоимпеданс: он пересекается с обедом, это нужно организовать отдельно.</p>
 </section>
@@ -136,7 +178,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     <span class="chip" style="--c:var(--muted)"><i></i>Занят точно</span>
     <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно</span>
   </div>
-  <div class="scroll"><table class="tbl staff" id="staff"></table></div>
+  <div class="scroll staffwrap"><table class="tbl staff" id="staff"></table></div>
+  <div class="staffm" id="staffm"></div>
 </section>
 
 <section class="pane" data-tab="agree" data-label="Требует согласования">
@@ -213,6 +256,15 @@ for(const day of DAYS){
 }
 wk.innerHTML=h;
 
+// Телефон: один день списком
+let cur=0;{const t=new Date();if(t.getFullYear()===2026&&t.getMonth()===10){const i=t.getDate()-16;if(i>=0&&i<5)cur=i;}}
+function drawAg(){
+  document.getElementById("daypick").innerHTML=DAYS.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join("");
+  document.getElementById("ag").innerHTML=DAYS[cur].ev.map(([s,e,cat,t,sub,pre,flag])=>`<li class="${cat==="meal"?"meal":""} ${pre?"pre":""}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${flag?'<span class="warn">!</span>':""}${sub?`<small>${esc(sub)}</small>`:""}</span></li>`).join("");
+}
+document.getElementById("daypick").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cur=+b.dataset.i;drawAg();});
+drawAg();
+
 // Сводка за неделю, считается из сетки
 const tot={acad:0,proj:0,media:0,volley:0,swim:0};
 for(const day of DAYS)for(const [s,e,cat,t] of day.ev){
@@ -244,6 +296,7 @@ for(const p of STAFF){let sol=0,dash=0;
   for(const day of p.d){s+='<td><div class="strip">'+day.map(([a,b,k])=>{if(k==="s")sol+=b-a;else dash+=b-a;return `<i class="${k}" style="--c:var(${p.c});left:${(a-START)/6}%;width:${(b-a)/6}%" title="${fmt(a)}–${fmt(b)}${k==="d"?" · предварительно":""}"></i>`}).join("")+'</div></td>';}
   s+=`<td class="hrs mono">${sol?hh(sol):"—"}${dash?`<small>+ до ${hh(dash)}</small>`:""}</td></tr>`;}
 document.getElementById("staff").innerHTML=s;
+document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style="--c:var(${p.c})"><b>${p.n}</b><small>${p.q}</small><ul>`+p.d.map((day,i)=>day.length?`<li><span>${DAYS[i].d}</span><span>${day.map(([a,b,k])=>`<span class="${k}">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join(", ")}</span></li>`:"").join("")+'</ul></div>').join("")+'<p class="note">* предварительно, до согласования</p>';
 
 // Требует согласования
 const AG=[
