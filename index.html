@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Сборы МШСО 16–20 ноября</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: один столбец ~1080px, три окна-вкладки: расписание, команда, согласования */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#162033; --muted:#5a6377; --line:#dde2ea;
+  --train:#2d5c9c; --acad:#2b7a4d; --proj:#1d7a82; --media:#7650ad; --ext:#b8730f; --meal:#8a90a0;
+  --warn:#b8452c;
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Consolas",monospace;
+  --tint:14%;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#19202c; --ink:#e7ebf2; --muted:#9aa3b5; --line:#2a3342;
+  --train:#7ea8e6; --acad:#6fc493; --proj:#5fc3cb; --media:#b597e6; --ext:#e3a649; --meal:#7d8597;
+  --warn:#ee8a70; --tint:20%; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#19202c; --ink:#e7ebf2; --muted:#9aa3b5; --line:#2a3342;
+  --train:#7ea8e6; --acad:#6fc493; --proj:#5fc3cb; --media:#b597e6; --ext:#e3a649; --meal:#7d8597;
+  --warn:#ee8a70; --tint:20%; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:40px}
+h1,h2{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(26px,4.4vw,40px);line-height:1.1}
+h2{font-size:20px;line-height:1.25}
+p{margin:0;max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-direction:column;gap:12px}
+.lead{color:var(--muted);font-size:16px}
+
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;margin-block:-16px -20px;border-bottom:1px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs div{display:flex;gap:6px;width:max-content}
+.tab{font:inherit;font-size:13.5px;font-weight:500;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink);background:var(--surface)}
+.tab:focus-visible{outline:2px solid var(--train);outline-offset:1px}
+.tab[aria-selected="true"]{color:var(--ink);background:var(--surface);border-color:var(--line);box-shadow:0 1px 2px color-mix(in srgb,var(--ink) 8%,transparent)}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 10px 3px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) var(--tint),transparent);color:var(--ink)}
+.chip i{width:8px;height:8px;border-radius:2px;background:var(--c)}
+.chip.dash{background:transparent;outline:1.5px dashed color-mix(in srgb,var(--c) 70%,transparent);outline-offset:-1.5px}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.week{display:grid;grid-template-columns:48px repeat(5,minmax(132px,1fr));gap:0 6px;min-width:740px;padding-bottom:10px}
+.dayhead{padding:0 2px 8px;display:flex;flex-direction:column}
+.dayhead b{font-family:var(--f-display);font-weight:500;font-size:14px}
+.dayhead span{font-size:12px;color:var(--muted)}
+.axis,.col{position:relative;height:calc(var(--min) * 1.12px)}
+.axis span{position:absolute;right:6px;transform:translateY(-50%);font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.col{background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px calc(60 * 1.12px));border-radius:6px}
+.ev{position:absolute;left:0;right:0;border-radius:5px;padding:3px 7px;overflow:hidden;font-size:12px;line-height:1.3;
+  background:color-mix(in srgb,var(--c) var(--tint),var(--surface));border:1px solid color-mix(in srgb,var(--c) 35%,transparent);color:var(--ink)}
+.ev.pre{background:var(--surface);border:1.5px dashed color-mix(in srgb,var(--c) 75%,transparent)}
+.ev.meal{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.ev.meal.pre{border:1.5px dashed var(--line)}
+.ev t{display:block;font-family:var(--f-mono);font-size:10.5px;color:color-mix(in srgb,var(--c) 80%,var(--ink))}
+.ev.meal t{color:var(--muted)}
+.ev b{font-weight:600}
+.ev small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.ev.short{display:flex;gap:6px;align-items:center;padding-block:1px}
+.ev.short t{display:inline}
+.ev.flag::after{content:"!";position:absolute;top:3px;right:5px;width:15px;height:15px;border-radius:50%;background:var(--warn);color:var(--surface);font-size:11px;font-weight:700;display:grid;place-items:center}
+
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sumwrap{display:flex;flex-direction:column;gap:10px}
+.sum div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sum span{font-size:12.5px;color:var(--muted)}
+.sum b{font-family:var(--f-mono);font-weight:500;font-size:17px}
+.sum div.tot{border-color:var(--ink)}
+
+.tbl{border-collapse:collapse;width:100%;font-size:14px;background:var(--surface);border-radius:8px;overflow:hidden}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{font-weight:600;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.tbl tr:last-child td{border-bottom:0}
+.tbl.minw{min-width:600px}
+
+.staff{min-width:1000px}
+.staff td{vertical-align:middle}
+.staff td.who{width:250px;min-width:220px}
+.staff td.who small{display:block;color:var(--muted);font-size:11.5px;line-height:1.35;margin-top:3px}
+.ticks{position:relative;height:13px;margin-top:6px;min-width:130px}
+.ticks span{position:absolute;top:0;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;font-weight:400;color:var(--muted);line-height:1}
+.strip{position:relative;height:18px;min-width:130px;border-radius:4px;background:repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px 10%);background-color:color-mix(in srgb,var(--line) 30%,transparent)}
+.strip i{position:absolute;top:2px;bottom:2px;border-radius:3px;background:var(--c)}
+.strip i.d{background:transparent;border:1.5px dashed var(--c)}
+.hrs{white-space:nowrap}
+.hrs small{display:block;color:var(--muted);font-size:11px}
+
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">М1 × МШСО · рабочая версия от 02.11.2026</div>
+  <h1>Сборная МШСО × М1</h1>
+  <p class="lead">16–20 ноября 2026 · рабочая сетка очного модуля · 19 участниц</p>
+</header>
+
+<nav class="tabs" aria-label="Разделы"><div role="tablist" id="tabs"></div></nav>
+
+<section class="pane" data-tab="week" data-label="Расписание">
+  <h2>Расписание</h2>
+  <div class="legend">
+    <span class="chip" style="--c:var(--train)"><i></i>Волейбол</span>
+    <span class="chip" style="--c:var(--acad)"><i></i>Академический блок</span>
+    <span class="chip" style="--c:var(--proj)"><i></i>Исследовательский проект</span>
+    <span class="chip" style="--c:var(--media)"><i></i>Медиа</span>
+    <span class="chip" style="--c:var(--ext)"><i></i>Бассейн, биоимпеданс</span>
+    <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно, до согласования</span>
+  </div>
+  <div class="scroll"><div class="week" id="week"></div></div>
+  <div class="sumwrap"><div class="sum" id="sum"></div><div class="sum" id="sum2"></div></div>
+  <p class="note">Без учёта обедов, ужинов и биоимпеданса. Во вторник с 12:00 биоимпеданс: он пересекается с обедом, это нужно организовать отдельно.</p>
+</section>
+
+<section class="pane" data-tab="team" data-label="Команда">
+  <h2>Команда сборов</h2>
+  <p class="note">Где и когда нужен каждый взрослый.</p>
+  <div class="legend">
+    <span class="chip" style="--c:var(--muted)"><i></i>Занят точно</span>
+    <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно</span>
+  </div>
+  <div class="scroll"><table class="tbl staff" id="staff"></table></div>
+</section>
+
+<section class="pane" data-tab="agree" data-label="Требует согласования">
+  <h2>Требует согласования</h2>
+  <div class="scroll"><table class="tbl minw" id="agree"></table></div>
+  <p class="note">Вечерние спортивные блоки предварительные, до согласования. Обед обычно до 12:40. В среду общий медиамастер-класс для всех участниц: 2 × 2 часа.</p>
+</section>
+
+<footer>Все времена указаны по Москве.</footer>
+</div>
+
+<script>
+const START=600, END=1200, K=1.12; // 10:00–20:00
+// [начало, конец, тип, название, подпись, предварительно, внимание]
+const DAYS=[
+ {d:"Пн",date:"16.11",ev:[
+  [600,720,"train","Волейбол"],
+  [720,760,"meal","Обед"],
+  [780,900,"acad","Академический"],
+  [900,1000,"proj","Проект"],
+  [1020,1110,"train","Волейбол*","вечерний",1],
+  [1110,1140,"meal","Ужин*","после 18:30",1]
+ ]},
+ {d:"Вт",date:"17.11",ev:[
+  [600,720,"train","Волейбол"],
+  [720,760,"ext","Обед + биоимпеданс","биоимпеданс с 12:00",0,1],
+  [780,900,"acad","Академический"],
+  [900,1030,"proj","Проект"],
+  [1050,1140,"ext","Бассейн*","",1],
+  [1140,1170,"meal","Ужин*","",1]
+ ]},
+ {d:"Ср",date:"18.11",ev:[
+  [600,720,"train","Волейбол"],
+  [720,760,"meal","Обед"],
+  [760,1000,"media","Медиа-МК","общий для всех, 2 × 2 часа"],
+  [1020,1110,"train","Волейбол*","вечерний",1],
+  [1110,1140,"meal","Ужин*","после 18:30",1]
+ ]},
+ {d:"Чт",date:"19.11",ev:[
+  [600,720,"train","Волейбол"],
+  [720,760,"meal","Обед"],
+  [780,900,"acad","Академический"],
+  [900,1030,"proj","Проект"],
+  [1050,1140,"ext","Бассейн*","",1],
+  [1140,1170,"meal","Ужин*","",1]
+ ]},
+ {d:"Пт",date:"20.11",ev:[
+  [600,720,"train","Волейбол"],
+  [720,760,"meal","Обед"],
+  [780,900,"acad","Академический"],
+  [900,1000,"proj","Защита проектов"],
+  [1020,1110,"train","Волейбол*","вечерний",1],
+  [1110,1140,"meal","Ужин*","после 18:30",1]
+ ]}
+];
+const COL={train:"--train",acad:"--acad",proj:"--proj",media:"--media",ext:"--ext",meal:"--meal"};
+const fmt=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dur=m=>{const h=Math.floor(m/60),r=m%60;return ((h?h+" ч":"")+(r?(h?" ":"")+r+" мин":""))||"0"};
+
+// Сетка недели
+const wk=document.getElementById("week");
+wk.style.setProperty("--min",END-START);
+let h='<div></div>'+DAYS.map(x=>`<div class="dayhead"><b>${x.d}</b><span>${x.date}</span></div>`).join("");
+h+='<div class="axis">';for(let m=START;m<=END;m+=60)h+=`<span style="top:${(m-START)*K}px">${fmt(m)}</span>`;h+='</div>';
+for(const day of DAYS){
+  h+='<div class="col">';
+  for(const [s,e,cat,t,sub,pre,flag] of day.ev){
+    const short=(e-s)<=40;
+    const cls=["ev",cat==="meal"?"meal":"",pre?"pre":"",short?"short":"",flag?"flag":""].join(" ");
+    h+=`<div class="${cls}" style="--c:var(${COL[cat]});top:${(s-START)*K+1}px;height:${(e-s)*K-2}px" title="${esc(fmt(s)+"–"+fmt(e)+" "+t+(sub?" · "+sub:""))}"><t>${fmt(s)}–${fmt(e)}</t> <b>${esc(t)}</b>${!short&&sub?`<small>${esc(sub)}</small>`:""}</div>`;
+  }
+  h+='</div>';
+}
+wk.innerHTML=h;
+
+// Сводка за неделю, считается из сетки
+const tot={acad:0,proj:0,media:0,volley:0,swim:0};
+for(const day of DAYS)for(const [s,e,cat,t] of day.ev){
+  if(cat==="acad")tot.acad+=e-s; else if(cat==="proj")tot.proj+=e-s; else if(cat==="media")tot.media+=e-s;
+  else if(cat==="train")tot.volley+=e-s; else if(t.startsWith("Бассейн"))tot.swim+=e-s;
+}
+const edu=tot.acad+tot.proj+tot.media, sport=tot.volley+tot.swim;
+document.getElementById("sum").innerHTML=[
+ ["Академические занятия",tot.acad],["Проект, включая защиту",tot.proj],["Медиамастер-класс",tot.media],
+ ["Волейбол",tot.volley],["Бассейн",tot.swim]
+].map(([a,m])=>`<div><span>${a}</span><b>${dur(m)}</b></div>`).join("");
+document.getElementById("sum2").innerHTML=`<div class="tot"><span>Образовательная программа</span><b>${dur(edu)}</b></div><div class="tot"><span>Спортивная программа</span><b>${dur(sport)}</b></div>`;
+
+// Команда
+const only=(days,iv)=>[0,1,2,3,4].map(i=>days.includes(i)?iv.map(x=>x.slice()):[]);
+const STAFF=[
+ {n:"Тренер по волейболу",c:"--train",d:[0,1,2,3,4].map(i=>[[600,720,"s"],...([0,2,4].includes(i)?[[1020,1110,"d"]]:[])]),q:"вечерние тренировки зависят от зала"},
+ {n:"Преподаватели академического блока",c:"--acad",d:only([0,1,3,4],[[780,900,"s"]]),q:"кто ведёт в какой день"},
+ {n:"Руководитель проекта",c:"--proj",d:[[[900,1000,"s"]],[[900,1030,"s"]],[],[[900,1030,"s"]],[[900,1000,"s"]]],q:"в пятницу защита"},
+ {n:"Медиаспециалист",c:"--media",d:only([2],[[760,1000,"s"]]),q:"2 × 2 часа для всех"},
+ {n:"Школа плавания",c:"--ext",d:only([1,3],[[1050,1140,"d"]]),q:"нужно согласовать"},
+ {n:"Специалист биоимпеданса",c:"--ext",d:only([1],[[720,780,"d"]]),q:"протокол и длительность замера"},
+ {n:"Кураторы",c:"--proj",d:[0,1,2,3,4].map(i=>[[720,[1,3].includes(i)?1170:1140,"s"]]),q:"сколько человек и какие смены"}
+];
+const hh=m=>String(Math.round(m/6)/10).replace(".",",")+" ч";
+let s='<tr><th>Кто</th>'+DAYS.map(x=>`<th>${x.d} · ${x.date}<div class="ticks">${[12,14,16,18].map(v=>`<span style="left:${(v-10)*10}%">${v}</span>`).join("")}</div></th>`).join("")+'<th>Часов</th></tr>';
+for(const p of STAFF){let sol=0,dash=0;
+  s+=`<tr><td class="who"><b>${p.n}</b><small>${p.q}</small></td>`;
+  for(const day of p.d){s+='<td><div class="strip">'+day.map(([a,b,k])=>{if(k==="s")sol+=b-a;else dash+=b-a;return `<i class="${k}" style="--c:var(${p.c});left:${(a-START)/6}%;width:${(b-a)/6}%" title="${fmt(a)}–${fmt(b)}${k==="d"?" · предварительно":""}"></i>`}).join("")+'</div></td>';}
+  s+=`<td class="hrs mono">${sol?hh(sol):"—"}${dash?`<small>+ до ${hh(dash)}</small>`:""}</td></tr>`;}
+document.getElementById("staff").innerHTML=s;
+
+// Требует согласования
+const AG=[
+ ["Бассейн после 17:00","Вт, чт · 17:30–19:00","Школа плавания"],
+ ["Большой зал после 17:30","Пн, ср, пт · 17:00–18:30","Гимнастика"],
+ ["Ужин после 18:30","Все дни","Организация питания"],
+ ["Биоимпеданс: время и протокол","Вт · с 12:00, пересекается с обедом","Специалист биоимпеданса"],
+ ["МХАТ: день и формат","Половина дня, день не определён","МХАТ"]
+];
+document.getElementById("agree").innerHTML='<tr><th>Вопрос</th><th>Когда</th><th>С кем</th></tr>'+AG.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+// Окна-вкладки
+(function(){
+  const panes=[...document.querySelectorAll(".pane")], bar=document.getElementById("tabs");
+  bar.innerHTML=panes.map(p=>`<button class="tab" role="tab" type="button" id="tab-${p.dataset.tab}" data-t="${p.dataset.tab}">${p.dataset.label}</button>`).join("");
+  const tabs=[...bar.querySelectorAll(".tab")];
+  function show(id){
+    let i=panes.findIndex(p=>p.dataset.tab===id); if(i<0)i=0;
+    panes.forEach((p,k)=>p.hidden=k!==i);
+    tabs.forEach((t,k)=>t.setAttribute("aria-selected",k===i?"true":"false"));
+    try{history.replaceState(null,"","#"+panes[i].dataset.tab)}catch(e){}
+  }
+  tabs.forEach(t=>t.addEventListener("click",()=>show(t.dataset.t)));
+  bar.addEventListener("keydown",e=>{const i=tabs.indexOf(document.activeElement);if(i<0)return;const j=e.key==="ArrowRight"?i+1:e.key==="ArrowLeft"?i-1:-1;if(j<0||j>=tabs.length)return;tabs[j].focus();show(tabs[j].dataset.t)});
+  show((location.hash||"").slice(1)||"week");
+})();
+</script>
+
+</body>
+</html>
