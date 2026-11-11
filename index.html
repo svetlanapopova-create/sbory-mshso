@@ -58,15 +58,15 @@ header{display:flex;flex-direction:column;gap:12px}
 .dayhead{padding:0 2px 8px;display:flex;flex-direction:column}
 .dayhead b{font-family:var(--f-display);font-weight:500;font-size:14px}
 .dayhead span{font-size:12px;color:var(--muted)}
-.axis,.col{position:relative;height:calc(var(--min) * 1.12px)}
+.axis,.col{position:relative;height:var(--week-height,1320px)}
 .axis span{position:absolute;right:6px;transform:translateY(-50%);font-family:var(--f-mono);font-size:11px;color:var(--muted)}
-.col{background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px calc(60 * 1.12px));border-radius:6px}
-.ev{position:absolute;left:0;right:0;border-radius:5px;padding:3px 7px;overflow:hidden;font-size:12px;line-height:1.3;
+.col{background:var(--hour-lines,none);border-radius:6px}
+.ev{box-sizing:border-box;position:absolute;left:0;right:0;border-radius:5px;padding:3px 7px;overflow-wrap:anywhere;font-size:12px;line-height:1.3;
   background:color-mix(in srgb,var(--c) var(--tint),var(--surface));border:1px solid color-mix(in srgb,var(--c) 35%,transparent);color:var(--ink)}
 .ev.pre{background:var(--surface);border:1.5px dashed color-mix(in srgb,var(--c) 75%,transparent)}
 .ev.meal{background:transparent;border:1px solid var(--line);color:var(--muted)}
 .ev.meal.pre{border:1.5px dashed var(--line)}
-.ev t{display:block;font-family:var(--f-mono);font-size:10.5px;color:color-mix(in srgb,var(--c) 80%,var(--ink))}
+.ev .ev-time{display:block;font-family:var(--f-mono);font-size:10.5px;color:color-mix(in srgb,var(--c) 80%,var(--ink))}
 .ev.meal t{color:var(--muted)}
 .ev b{font-weight:600}
 .ev small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
@@ -141,6 +141,14 @@ header{display:flex;flex-direction:column;gap:12px}
   #agree td:not(:first-child){font-size:13px;color:var(--muted)}
 }
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+
+.schedule-filters{display:flex;flex-wrap:wrap;gap:12px}.schedule-filters label{display:flex;flex:1;min-width:180px;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}select,button,input{font:inherit}select{max-width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}select:focus-visible,summary:focus-visible{outline:2px solid var(--train)}details{border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:600;padding:6px 0}details>p,details>.scroll{margin-top:12px}#group-roster{display:grid;gap:10px;margin:16px 0}#group-roster div{display:flex;flex-direction:column;gap:3px}#group-roster span{color:var(--muted);font-size:13px}.transfer{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}.transfer button{padding:7px 12px;cursor:pointer}#selected-project{font-size:13px;display:grid;gap:5px}#selected-project h3{margin:0}#details article{margin-bottom:22px}.week{grid-template-columns:48px repeat(5,minmax(160px,1fr));min-width:900px}.week.filtered{grid-template-columns:48px repeat(5,minmax(160px,1fr));min-width:900px}.ev small,.ag small{white-space:pre-line}.ev small{font-size:11px}.ev .ev-time{font-size:10px}#assignment-table{min-width:500px}
+.ev.break{background:transparent;border:0;border-left:2px solid var(--line);padding:1px 4px;color:var(--muted)}.ev.break .ev-time{display:none}.ev.break b{font-size:9px;line-height:11px;display:block;font-weight:400}
+.staff-time{display:inline-block;margin:3px 6px 0 0;font-size:10px;white-space:nowrap;color:var(--muted)}
+
+.ev.lane{padding-inline:4px;font-size:11px}
+.ev.lane .ev-time{font-size:9px}
+.ag li>span:last-child{min-width:0;overflow-wrap:anywhere}
 </style>
 
 </head>
@@ -148,9 +156,10 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 <div class="wrap">
 
 <header>
-  <div class="eyebrow">М1 × МШСО · рабочая версия от 02.11.2026</div>
+  <div class="eyebrow">М1 × МШСО · рабочая версия от 11.11.2026</div>
   <h1>Сборная МШСО × М1</h1>
-  <p class="lead">16–20 ноября 2026 · рабочая сетка очного модуля · 19 участниц</p>
+  <p class="lead">16–20 ноября 2026 · рабочая сетка очного модуля · 15 участниц: 8 школьниц и 7 старших</p>
+
 </header>
 
 <nav class="tabs" aria-label="Разделы"><div role="tablist" id="tabs"></div></nav>
@@ -167,15 +176,15 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   </div>
   <div class="agenda"><div class="daypick" id="daypick" role="group" aria-label="День"></div><ul class="ag" id="ag"></ul></div>
   <div class="scroll weekwrap"><div class="week" id="week"></div></div>
-  <div class="sumwrap"><div class="sum" id="sum"></div><div class="sum" id="sum2"></div></div>
-  <p class="note">Без учёта обедов, ужинов и биоимпеданса. Во вторник с 12:00 биоимпеданс: он пересекается с обедом, это нужно организовать отдельно.</p>
+  <p class="note">Объём программы по общей сетке</p><div class="sumwrap"><div class="sum" id="sum"></div><div class="sum" id="sum2"></div></div>
+
 </section>
 
 <section class="pane" data-tab="team" data-label="Команда">
   <h2>Команда сборов</h2>
-  <p class="note">Где и когда нужен каждый взрослый.</p>
+  <p class="note">Занятость команды по презентации. В пятницу комиссия работает с 15:00 до 16:00. Смены кураторов уточняются.</p>
   <div class="legend">
-    <span class="chip" style="--c:var(--muted)"><i></i>Занят точно</span>
+    <span class="chip" style="--c:var(--muted)"><i></i>По программе</span>
     <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно</span>
   </div>
   <div class="scroll staffwrap"><table class="tbl staff" id="staff"></table></div>
@@ -185,85 +194,571 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 <section class="pane" data-tab="agree" data-label="Требует согласования">
   <h2>Требует согласования</h2>
   <div class="scroll"><table class="tbl minw" id="agree"></table></div>
-  <p class="note">Вечерние спортивные блоки предварительные, до согласования. Обед обычно до 12:40. В среду общий медиамастер-класс для всех участниц: 2 × 2 часа.</p>
+  <p class="note">Питание, переходы и вечерние спортивные блоки требуют согласования.</p>
 </section>
 
-<footer>Все времена указаны по Москве.</footer>
+
+<footer>Источники: «Модуль М1 расписание.pptx» (7 слайдов). Рабочая версия, согласование отдельных блоков не подтверждено. Все времена указаны по Москве.</footer>
 </div>
 
 <script>
-const START=600, END=1200, K=1.12; // 10:00–20:00
+const START=600, END=1200, K=2.2; // 10:00–20:00
 // [начало, конец, тип, название, подпись, предварительно, внимание]
 const DAYS=[
- {d:"Пн",date:"16.11",ev:[
-  [600,720,"train","Волейбол"],
-  [720,760,"meal","Обед"],
-  [780,900,"acad","Академический"],
-  [900,1000,"proj","Проект"],
-  [1020,1110,"train","Волейбол*","вечерний",1],
-  [1110,1140,"meal","Ужин*","после 18:30",1]
- ]},
- {d:"Вт",date:"17.11",ev:[
-  [600,720,"train","Волейбол"],
-  [720,760,"ext","Обед + биоимпеданс","биоимпеданс с 12:00",0,1],
-  [780,900,"acad","Академический"],
-  [900,1030,"proj","Проект"],
-  [1050,1140,"ext","Бассейн*","",1],
-  [1140,1170,"meal","Ужин*","",1]
- ]},
- {d:"Ср",date:"18.11",ev:[
-  [600,720,"train","Волейбол"],
-  [720,760,"meal","Обед"],
-  [760,1000,"media","Медиа-МК","общий для всех, 2 × 2 часа"],
-  [1020,1110,"train","Волейбол*","вечерний",1],
-  [1110,1140,"meal","Ужин*","после 18:30",1]
- ]},
- {d:"Чт",date:"19.11",ev:[
-  [600,720,"train","Волейбол"],
-  [720,760,"meal","Обед"],
-  [780,900,"acad","Академический"],
-  [900,1030,"proj","Проект"],
-  [1050,1140,"ext","Бассейн*","",1],
-  [1140,1170,"meal","Ужин*","",1]
- ]},
- {d:"Пт",date:"20.11",ev:[
-  [600,720,"train","Волейбол"],
-  [720,760,"meal","Обед"],
-  [780,900,"acad","Академический"],
-  [900,1000,"proj","Защита проектов"],
-  [1020,1110,"train","Волейбол*","вечерний",1],
-  [1110,1140,"meal","Ужин*","после 18:30",1]
- ]}
+ {
+  "d": "Пн",
+  "date": "16.11",
+  "ev": [
+   [
+    600,
+    720,
+    "train",
+    "Волейбол",
+    "",
+    0
+   ],
+   [
+    720,
+    760,
+    "meal",
+    "Обед*",
+    "До согласования",
+    1
+   ],
+   [
+    780,
+    790,
+    "proj",
+    "Открытие модуля",
+    "Котов Р.И.",
+    0
+   ],
+   [
+    790,
+    800,
+    "proj",
+    "Организационная часть",
+    "Жеребьёвка и выдача зачётных книжек",
+    0
+   ],
+   [
+    800,
+    820,
+    "proj",
+    "Психологическая сонастройка",
+    "",
+    0
+   ],
+   [
+    830,
+    870,
+    "acad",
+    "Диагностика: русский язык",
+    "Манжикова И.Н.",
+    0,
+    0,
+    null,
+    null,
+    {
+     "senior": [
+      "Биоимпеданс",
+      "3 участницы"
+     ]
+    }
+   ],
+   [
+    880,
+    920,
+    "acad",
+    "Диагностика: биология",
+    "Карев Д.А. · квест",
+    0,
+    0,
+    null,
+    null,
+    {
+     "senior": [
+      "Эндокринолог",
+      "По результатам замера"
+     ]
+    }
+   ],
+   [
+    930,
+    970,
+    "acad",
+    "Диагностика: математика",
+    "Колоскова Е.В.",
+    0,
+    0,
+    null,
+    null,
+    {
+     "senior": [
+      "Психология",
+      "Тема согласуется"
+     ]
+    }
+   ],
+   [
+    980,
+    1000,
+    "proj",
+    "Запуск проектов",
+    "",
+    0
+   ],
+   [
+    1020,
+    1110,
+    "train",
+    "Волейбол*",
+    "Вечерний, до согласования",
+    1
+   ],
+   [
+    1110,
+    1140,
+    "meal",
+    "Ужин*",
+    "До согласования",
+    1
+   ]
+  ]
+ },
+ {
+  "d": "Вт",
+  "date": "17.11",
+  "ev": [
+   [
+    600,
+    720,
+    "train",
+    "Волейбол",
+    "",
+    0
+   ],
+   [
+    720,
+    750,
+    "proj",
+    "Замеры в зале",
+    "По подробному слайду 5. В обзоре указано 13:00–13:50.",
+    1
+   ],
+   [
+    750,
+    780,
+    "meal",
+    "Обед*",
+    "До согласования",
+    1
+   ],
+   [
+    780,
+    840,
+    "acad",
+    "Предметная карусель",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Биология",
+       "Куницына И.А."
+      ],
+      [
+       "Физика",
+       "Калашникова Е."
+      ],
+      [
+       "Английский язык",
+       "Жирнова А."
+      ]
+     ]
+    }
+   ],
+   [
+    905,
+    965,
+    "acad",
+    "Предметная карусель",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Английский язык",
+       "Жирнова А."
+      ],
+      [
+       "Биология",
+       "Карев Д.А."
+      ],
+      [
+       "Физика",
+       "Калашникова Е."
+      ]
+     ]
+    }
+   ],
+   [
+    970,
+    1030,
+    "acad",
+    "Предметная карусель",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Физика",
+       "Калашникова Е."
+      ],
+      [
+       "Английский язык",
+       "Жирнова А."
+      ],
+      [
+       "Биология",
+       "Куницына И.А."
+      ]
+     ]
+    }
+   ],
+   [
+    1050,
+    1140,
+    "ext",
+    "Бассейн*",
+    "До согласования",
+    1
+   ],
+   [
+    1140,
+    1170,
+    "meal",
+    "Ужин*",
+    "До согласования",
+    1
+   ]
+  ]
+ },
+ {
+  "d": "Ср",
+  "date": "18.11",
+  "ev": [
+   [
+    600,
+    720,
+    "train",
+    "Волейбол",
+    "",
+    0
+   ],
+   [
+    720,
+    760,
+    "meal",
+    "Обед*",
+    "До согласования",
+    1
+   ],
+   [
+    780,
+    830,
+    "acad",
+    "Диагностика: история",
+    "Добрынина В.В. · формат ЧГК",
+    0
+   ],
+   [
+    840,
+    900,
+    "acad",
+    "Математика",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Математика",
+       "Мачучин И.А."
+      ],
+      [
+       "Математика",
+       "Багдасаров В.Б."
+      ],
+      [
+       "Математика",
+       "Мясоедова А.К."
+      ]
+     ]
+    }
+   ],
+   [
+    905,
+    965,
+    "proj",
+    "Работа в группе над проектом",
+    "",
+    0
+   ],
+   [
+    970,
+    1000,
+    "proj",
+    "Встреча с психологами",
+    "",
+    0
+   ],
+   [
+    1020,
+    1110,
+    "train",
+    "Волейбол*",
+    "Вечерний, до согласования",
+    1
+   ],
+   [
+    1110,
+    1140,
+    "meal",
+    "Ужин*",
+    "До согласования",
+    1
+   ]
+  ]
+ },
+ {
+  "d": "Чт",
+  "date": "19.11",
+  "ev": [
+   [
+    600,
+    720,
+    "train",
+    "Волейбол",
+    "",
+    0
+   ],
+   [
+    720,
+    760,
+    "meal",
+    "Обед*",
+    "До согласования",
+    1
+   ],
+   [
+    760,
+    1000,
+    "media",
+    "Медиадень",
+    "",
+    0
+   ],
+   [
+    1000,
+    1050,
+    "proj",
+    "Самостоятельная работа над проектом",
+    "",
+    0
+   ],
+   [
+    1050,
+    1140,
+    "ext",
+    "Бассейн*",
+    "До согласования",
+    1
+   ],
+   [
+    1140,
+    1170,
+    "meal",
+    "Ужин*",
+    "До согласования",
+    1
+   ]
+  ]
+ },
+ {
+  "d": "Пт",
+  "date": "20.11",
+  "ev": [
+   [
+    600,
+    720,
+    "train",
+    "Волейбол",
+    "",
+    0
+   ],
+   [
+    720,
+    760,
+    "meal",
+    "Обед*",
+    "До согласования",
+    1
+   ],
+   [
+    780,
+    820,
+    "acad",
+    "Оформление проектов",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Публичные выступления",
+       ""
+      ],
+      [
+       "Английский язык",
+       "Жирнова А."
+      ],
+      [
+       "Информатика",
+       "Кочергин"
+      ]
+     ]
+    }
+   ],
+   [
+    830,
+    870,
+    "acad",
+    "Оформление проектов",
+    "",
+    0,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Английский язык",
+       "Жирнова А."
+      ],
+      [
+       "Информатика",
+       "Кочергин"
+      ],
+      [
+       "Публичные выступления",
+       ""
+      ]
+     ]
+    }
+   ],
+   [
+    880,
+    900,
+    "acad",
+    "Оформление проектов",
+    "До 15:00 предварительно. На слайде 7 указано 15:40, одновременно с защитой.",
+    1,
+    0,
+    null,
+    null,
+    {
+     "groups": [
+      [
+       "Информатика",
+       "Кочергин"
+      ],
+      [
+       "Публичные выступления",
+       ""
+      ],
+      [
+       "Английский язык",
+       "Жирнова А."
+      ]
+     ]
+    }
+   ],
+   [
+    900,
+    960,
+    "proj",
+    "Защита проектов",
+    "Около 15 минут на группу и обсуждение. Комиссия: учителя модуля.",
+    0
+   ],
+   [
+    960,
+    990,
+    "proj",
+    "Заключительная рефлексия",
+    "Психологи",
+    0
+   ],
+   [
+    990,
+    1000,
+    "proj",
+    "Закрытие модуля",
+    "Котов Р.И.",
+    0
+   ],
+   [
+    1020,
+    1110,
+    "train",
+    "Волейбол*",
+    "Вечерний, до согласования",
+    1
+   ],
+   [
+    1110,
+    1140,
+    "meal",
+    "Ужин*",
+    "До согласования",
+    1
+   ]
+  ]
+ }
 ];
 const COL={train:"--train",acad:"--acad",proj:"--proj",media:"--media",ext:"--ext",meal:"--meal"};
 const fmt=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const dur=m=>{const h=Math.floor(m/60),r=m%60;return ((h?h+" ч":"")+(r?(h?" ":"")+r+" мин":""))||"0"};
 
-// Сетка недели
+// Сетка недели и мобильный список
 const wk=document.getElementById("week");
-wk.style.setProperty("--min",END-START);
-let h='<div></div>'+DAYS.map(x=>`<div class="dayhead"><b>${x.d}</b><span>${x.date}</span></div>`).join("");
-h+='<div class="axis">';for(let m=START;m<=END;m+=60)h+=`<span style="top:${(m-START)*K}px">${fmt(m)}</span>`;h+='</div>';
-for(const day of DAYS){
-  h+='<div class="col">';
-  for(const [s,e,cat,t,sub,pre,flag] of day.ev){
-    const short=(e-s)<=40;
-    const cls=["ev",cat==="meal"?"meal":"",pre?"pre":"",short?"short":"",flag?"flag":""].join(" ");
-    h+=`<div class="${cls}" style="--c:var(${COL[cat]});top:${(s-START)*K+1}px;height:${(e-s)*K-2}px" title="${esc(fmt(s)+"–"+fmt(e)+" "+t+(sub?" · "+sub:""))}"><t>${fmt(s)}–${fmt(e)}</t> <b>${esc(t)}</b>${!short&&sub?`<small>${esc(sub)}</small>`:""}</div>`;
-  }
-  h+='</div>';
+let cur=0;
+const today=new Date();
+if(today.getFullYear()===2026&&today.getMonth()===10&&today.getDate()>=16&&today.getDate()<=20){
+ cur=today.getDate()-16;
 }
-wk.innerHTML=h;
-
-// Телефон: один день списком
-let cur=0;{const t=new Date();if(t.getFullYear()===2026&&t.getMonth()===10){const i=t.getDate()-16;if(i>=0&&i<5)cur=i;}}
-function drawAg(){
-  document.getElementById("daypick").innerHTML=DAYS.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join("");
-  document.getElementById("ag").innerHTML=DAYS[cur].ev.map(([s,e,cat,t,sub,pre,flag])=>`<li class="${cat==="meal"?"meal":""} ${pre?"pre":""}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${flag?'<span class="warn">!</span>':""}${sub?`<small>${esc(sub)}</small>`:""}</span></li>`).join("");
-}
-document.getElementById("daypick").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cur=+b.dataset.i;drawAg();});
-drawAg();
+let drawAg;
+document.getElementById("daypick").addEventListener("click",event=>{
+ const button=event.target.closest("button");
+ if(!button)return;
+ cur=Number(button.dataset.i);
+ drawAg();
+});
 
 // Сводка за неделю, считается из сетки
 const tot={acad:0,proj:0,media:0,volley:0,swim:0};
@@ -273,7 +768,7 @@ for(const day of DAYS)for(const [s,e,cat,t] of day.ev){
 }
 const edu=tot.acad+tot.proj+tot.media, sport=tot.volley+tot.swim;
 document.getElementById("sum").innerHTML=[
- ["Академические занятия",tot.acad],["Проект, включая защиту",tot.proj],["Медиамастер-класс",tot.media],
+ ["Учебно-проектный блок · вся программа",tot.acad+tot.proj],["Медиадень · все",tot.media],
  ["Волейбол",tot.volley],["Бассейн",tot.swim]
 ].map(([a,m])=>`<div><span>${a}</span><b>${dur(m)}</b></div>`).join("");
 document.getElementById("sum2").innerHTML=`<div class="tot"><span>Образовательная программа</span><b>${dur(edu)}</b></div><div class="tot"><span>Спортивная программа</span><b>${dur(sport)}</b></div>`;
@@ -281,32 +776,719 @@ document.getElementById("sum2").innerHTML=`<div class="tot"><span>Образов
 // Команда
 const only=(days,iv)=>[0,1,2,3,4].map(i=>days.includes(i)?iv.map(x=>x.slice()):[]);
 const STAFF=[
- {n:"Тренер по волейболу",c:"--train",d:[0,1,2,3,4].map(i=>[[600,720,"s"],...([0,2,4].includes(i)?[[1020,1110,"d"]]:[])]),q:"вечерние тренировки зависят от зала"},
- {n:"Преподаватели академического блока",c:"--acad",d:only([0,1,3,4],[[780,900,"s"]]),q:"кто ведёт в какой день"},
- {n:"Руководитель проекта",c:"--proj",d:[[[900,1000,"s"]],[[900,1030,"s"]],[],[[900,1030,"s"]],[[900,1000,"s"]]],q:"в пятницу защита"},
- {n:"Медиаспециалист",c:"--media",d:only([2],[[760,1000,"s"]]),q:"2 × 2 часа для всех"},
- {n:"Школа плавания",c:"--ext",d:only([1,3],[[1050,1140,"d"]]),q:"нужно согласовать"},
- {n:"Специалист биоимпеданса",c:"--ext",d:only([1],[[720,780,"d"]]),q:"протокол и длительность замера"},
- {n:"Кураторы",c:"--proj",d:[0,1,2,3,4].map(i=>[[720,[1,3].includes(i)?1170:1140,"s"]]),q:"сколько человек и какие смены"}
+ {
+  "n": "Манжикова И. Н.",
+  "c": "--acad",
+  "d": [
+   [
+    [
+     830,
+     870,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Русский язык"
+ },
+ {
+  "n": "Карев Д. А.",
+  "c": "--acad",
+  "d": [
+   [
+    [
+     880,
+     920,
+     "s"
+    ]
+   ],
+   [
+    [
+     905,
+     965,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Биология"
+ },
+ {
+  "n": "Колоскова Е. В.",
+  "c": "--acad",
+  "d": [
+   [
+    [
+     930,
+     970,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Математика"
+ },
+ {
+  "n": "Куницына И. А.",
+  "c": "--acad",
+  "d": [
+   [],
+   [
+    [
+     780,
+     840,
+     "s"
+    ],
+    [
+     970,
+     1030,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Биология"
+ },
+ {
+  "n": "Калашникова Е.",
+  "c": "--acad",
+  "d": [
+   [],
+   [
+    [
+     780,
+     840,
+     "s"
+    ],
+    [
+     905,
+     965,
+     "s"
+    ],
+    [
+     970,
+     1030,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Физика"
+ },
+ {
+  "n": "Жирнова А.",
+  "c": "--acad",
+  "d": [
+   [],
+   [
+    [
+     780,
+     840,
+     "s"
+    ],
+    [
+     905,
+     965,
+     "s"
+    ],
+    [
+     970,
+     1030,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     780,
+     820,
+     "s"
+    ],
+    [
+     830,
+     870,
+     "s"
+    ],
+    [
+     880,
+     900,
+     "d"
+    ],
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Английский язык"
+ },
+ {
+  "n": "Добрынина В. В.",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [
+    [
+     780,
+     830,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "История"
+ },
+ {
+  "n": "Мачучин И. А.",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [
+    [
+     840,
+     900,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Математика, группа 1"
+ },
+ {
+  "n": "Багдасаров В. Б.",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [
+    [
+     840,
+     900,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Математика, группа 2"
+ },
+ {
+  "n": "Мясоедова А. К.",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [
+    [
+     840,
+     900,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Математика, группа 3"
+ },
+ {
+  "n": "Кочергин",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [],
+   [],
+   [
+    [
+     780,
+     820,
+     "s"
+    ],
+    [
+     830,
+     870,
+     "s"
+    ],
+    [
+     880,
+     900,
+     "d"
+    ],
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Информатика"
+ },
+ {
+  "n": "Котов Р. И.",
+  "c": "--proj",
+  "d": [
+   [
+    [
+     780,
+     790,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [],
+   [
+    [
+     990,
+     1000,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Открытие и закрытие модуля"
+ },
+ {
+  "n": "Тренер по волейболу",
+  "c": "--train",
+  "d": [
+   [
+    [
+     600,
+     720,
+     "s"
+    ],
+    [
+     1020,
+     1110,
+     "d"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ],
+    [
+     1020,
+     1110,
+     "d"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ],
+    [
+     1020,
+     1110,
+     "d"
+    ]
+   ]
+  ],
+  "q": "Вечерний зал требует согласования"
+ },
+ {
+  "n": "Публичные выступления",
+  "c": "--acad",
+  "d": [
+   [],
+   [],
+   [],
+   [],
+   [
+    [
+     780,
+     820,
+     "s"
+    ],
+    [
+     830,
+     870,
+     "s"
+    ],
+    [
+     880,
+     900,
+     "d"
+    ],
+    [
+     900,
+     960,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Ведущий уточняется"
+ },
+ {
+  "n": "Психологи",
+  "c": "--proj",
+  "d": [
+   [
+    [
+     800,
+     820,
+     "s"
+    ],
+    [
+     930,
+     970,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     970,
+     1000,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     960,
+     990,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Сонастройка, встречи и рефлексия"
+ },
+ {
+  "n": "Специалист биоимпеданса",
+  "c": "--ext",
+  "d": [
+   [
+    [
+     830,
+     870,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [],
+   []
+  ],
+  "q": "3 участницы"
+ },
+ {
+  "n": "Эндокринолог",
+  "c": "--ext",
+  "d": [
+   [
+    [
+     880,
+     920,
+     "s"
+    ]
+   ],
+   [],
+   [],
+   [],
+   []
+  ],
+  "q": "Беседа по результатам"
+ },
+ {
+  "n": "Медиакоманда",
+  "c": "--media",
+  "d": [
+   [],
+   [],
+   [],
+   [
+    [
+     760,
+     1000,
+     "s"
+    ]
+   ],
+   []
+  ],
+  "q": "Медиадень"
+ },
+ {
+  "n": "Школа плавания",
+  "c": "--ext",
+  "d": [
+   [],
+   [
+    [
+     1050,
+     1140,
+     "d"
+    ]
+   ],
+   [],
+   [
+    [
+     1050,
+     1140,
+     "d"
+    ]
+   ],
+   []
+  ],
+  "q": "До согласования"
+ }
 ];
-const hh=m=>String(Math.round(m/6)/10).replace(".",",")+" ч";
-let s='<tr><th>Кто</th>'+DAYS.map(x=>`<th>${x.d} · ${x.date}<div class="ticks">${[12,14,16,18].map(v=>`<span style="left:${(v-10)*10}%">${v}</span>`).join("")}</div></th>`).join("")+'<th>Часов</th></tr>';
+const hh=dur;
+let s='<tr><th>Педагог / роль</th>'+DAYS.map(x=>`<th>${x.d} · ${x.date}<div class="ticks">${[12,14,16,18].map(v=>`<span style="left:${(v-10)*10}%">${v}</span>`).join("")}</div></th>`).join("")+'<th>Часов</th></tr>';
 for(const p of STAFF){let sol=0,dash=0;
   s+=`<tr><td class="who"><b>${p.n}</b><small>${p.q}</small></td>`;
-  for(const day of p.d){s+='<td><div class="strip">'+day.map(([a,b,k])=>{if(k==="s")sol+=b-a;else dash+=b-a;return `<i class="${k}" style="--c:var(${p.c});left:${(a-START)/6}%;width:${(b-a)/6}%" title="${fmt(a)}–${fmt(b)}${k==="d"?" · предварительно":""}"></i>`}).join("")+'</div></td>';}
+  for(const day of p.d){s+='<td><div class="strip">'+day.map(([a,b,k])=>{if(k==="s")sol+=b-a;else dash+=b-a;return `<i class="${k}" style="--c:var(${p.c});left:${(a-START)/6}%;width:${(b-a)/6}%" title="${fmt(a)}–${fmt(b)}${k==="d"?" · предварительно":""}"></i>`}).join("")+'</div>'+day.map(([a,b,k])=>`<span class="staff-time">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join("")+'</td>';}
   s+=`<td class="hrs mono">${sol?hh(sol):"—"}${dash?`<small>+ до ${hh(dash)}</small>`:""}</td></tr>`;}
 document.getElementById("staff").innerHTML=s;
 document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style="--c:var(${p.c})"><b>${p.n}</b><small>${p.q}</small><ul>`+p.d.map((day,i)=>day.length?`<li><span>${DAYS[i].d}</span><span>${day.map(([a,b,k])=>`<span class="${k}">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join(", ")}</span></li>`:"").join("")+'</ul></div>').join("")+'<p class="note">* предварительно, до согласования</p>';
 
 // Требует согласования
 const AG=[
- ["Бассейн после 17:00","Вт, чт · 17:30–19:00","Школа плавания"],
- ["Большой зал после 17:30","Пн, ср, пт · 17:00–18:30","Гимнастика"],
- ["Ужин после 18:30","Все дни","Организация питания"],
- ["Биоимпеданс: время и протокол","Вт · с 12:00, пересекается с обедом","Специалист биоимпеданса"],
- ["МХАТ: день и формат","Половина дня, день не определён","МХАТ"]
+ [
+  "Замеры во вторник",
+  "12:00–12:30 по слайду 5",
+  "Слайд 2 указывает 13:00–13:50. Подтвердить время и доступность спортзала."
+ ],
+ [
+  "Обед во вторник",
+  "12:30–13:00 предварительно",
+  "Согласовать с учётом замеров и начала карусели в 13:00."
+ ],
+ [
+  "Окно во вторник",
+  "14:00–15:05",
+  "В подробной сетке на это время нет занятия. Уточнить, предусмотрена ли активность."
+ ],
+ [
+  "Последняя карусель в пятницу",
+  "14:40–15:00 предварительно",
+  "На слайде 7 указано 14:40–15:40, защита начинается в 15:00. Подтвердить длительность."
+ ],
+ [
+  "Вечерний волейбол",
+  "Пн, ср, пт 17:00–18:30",
+  "Зал и тренеры"
+ ],
+ [
+  "Бассейн",
+  "Вт, чт 17:30–19:00",
+  "Школа плавания и время перехода"
+ ],
+ [
+  "Питание и восстановление",
+  "Ежедневно",
+  "Организаторы и питание"
+ ],
+ [
+  "Медицинский блок",
+  "Пн 13:50–14:30 и 14:40–15:20",
+  "Уточнить трёх участниц на биоимпеданс и порядок беседы с эндокринологом."
+ ],
+ [
+  "Психология и публичные выступления",
+  "Пн, ср, пт",
+  "Уточнить тему для старших и ведущих."
+ ],
+ [
+  "Кураторы и группы",
+  "Жеребьёвка в понедельник",
+  "Подтвердить состав, сопровождение и смены."
+ ]
 ];
 document.getElementById("agree").innerHTML='<tr><th>Вопрос</th><th>Когда</th><th>С кем</th></tr>'+AG.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+
+function scheduleDays(){
+ return DAYS.map(day=>{
+  const events=[];
+  let end=START;
+  for(const entry of day.ev){
+   const [start,finish,category,title,note,provisional,,,,variants]=entry;
+   if(start>end)events.push([end,start,'meal','Свободное время']);
+   end=finish;
+   if(variants?.senior){
+    const [seniorTitle,seniorNote]=variants.senior;
+     events.push([start,finish,category,title,note,provisional,0,0,2]);
+     events.push([start,finish,'ext',seniorTitle,seniorNote,provisional,0,1,2]);
+   }else{
+    events.push(entry);
+   }
+  }
+  return {...day,ev:events};
+ });
+}
+function fitWeekCards(){
+ if(!wk.clientWidth)return;
+ const cards=[...wk.querySelectorAll('.ev[data-start]')];
+ const hours=Array.from({length:(END-START)/60+1},(_,i)=>START+60*i);
+ const stops=new Set(hours);
+ const endings=new Map();
+ for(const card of cards)card.style.height='auto';
+ for(const card of cards){
+  const start=Number(card.dataset.start),end=Number(card.dataset.end);
+  stops.add(start);
+  stops.add(end);
+  const constraints=endings.get(end)||[];
+  constraints.push({start,height:Math.ceil(card.getBoundingClientRect().height)+2});
+  endings.set(end,constraints);
+ }
+ // Each time has one position shared by all five days. Short slots can grow to fit their labels.
+ const positions=new Map([[START,0]]);
+ let prev=START;
+ for(const time of [...stops].sort((a,b)=>a-b)){
+  if(time===START)continue;
+  let position=positions.get(prev)+(time-prev)*K;
+  for(const {start,height} of endings.get(time)||[]){
+   position=Math.max(position,positions.get(start)+height);
+  }
+  positions.set(time,position);
+  prev=time;
+ }
+ for(const card of cards){
+  const top=positions.get(Number(card.dataset.start));
+  const bottom=positions.get(Number(card.dataset.end));
+  card.style.top=(top+1)+'px';
+  card.style.height=(bottom-top-2)+'px';
+ }
+ for(const tick of wk.querySelectorAll('.axis [data-time]')){
+  tick.style.top=positions.get(Number(tick.dataset.time))+'px';
+ }
+ wk.style.setProperty('--week-height',positions.get(END)+'px');
+ wk.style.setProperty('--hour-lines',hours.slice(0,-1).map(hour=>
+  'linear-gradient(var(--line),var(--line)) 0 '+positions.get(hour)+'px / 100% 1px no-repeat'
+ ).join(', '));
+}
+
+function renderWeek(days){
+ let markup='<div></div>'+days.map(day=>
+  `<div class="dayhead"><b>${day.d}</b><span>${day.date}</span></div>`
+ ).join('');
+ markup+='<div class="axis">';
+ for(let time=START;time<=END;time+=60){
+  markup+=`<span data-time="${time}">${fmt(time)}</span>`;
+ }
+ markup+='</div>';
+ for(const day of days){
+  markup+='<div class="col">';
+  for(const [start,end,category,title,note,pre,,lane,total] of day.ev){
+   const time=fmt(start)+'–'+fmt(end);
+   const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':''].filter(Boolean).join(' ');
+   const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
+   const hint=esc(time+' '+title+(note?' · '+note:''));
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b></div>`;
+  }
+  markup+='</div>';
+ }
+ wk.innerHTML=markup;
+ fitWeekCards();
+}
+
+if(typeof ResizeObserver!=='undefined'){
+ let previousWidth=0;
+ new ResizeObserver(()=>{
+  const width=wk.clientWidth;
+  if(width&&width!==previousWidth)fitWeekCards();
+  previousWidth=width;
+ }).observe(wk);
+}
+document.fonts?.ready.then(fitWeekCards);
+
+function renderSchedule(){
+ const days=scheduleDays();
+ renderWeek(days);
+ drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre])=>`<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${sub?`<small>${esc(sub)}</small>`:''}</span></li>`).join('')};drawAg();
+}
+renderSchedule();
 
 // Окна-вкладки
 (function(){
