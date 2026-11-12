@@ -156,7 +156,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 <div class="wrap">
 
 <header>
-  <div class="eyebrow">М1 × МШСО · рабочая версия от 11.11.2026 · редакция 17:08</div>
+  <div class="eyebrow">М1 × МШСО · рабочая версия от 12.11.2026</div>
   <h1>Сборная МШСО × М1</h1>
   <p class="lead">16–20 ноября 2026 · рабочая сетка очного модуля · 15 участниц: 8 школьниц и 7 старших</p>
 
@@ -198,7 +198,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 </section>
 
 
-<footer>Источники: «Модуль М1 расписание», редакция от 11.11, 17:08 (7 слайдов). Рабочая версия, согласование отдельных блоков не подтверждено. Все времена указаны по Москве.</footer>
+<footer>Источники: «Модуль М1 расписание», редакция от 11.11, 17:08 (7 слайдов), «Программа SMM лекции медиа.docx». Рабочая версия, согласование отдельных блоков не подтверждено. Все времена указаны по Москве.</footer>
 </div>
 
 <script>
@@ -567,7 +567,7 @@ const DAYS=[
     1000,
     "media",
     "Медиадень",
-    "",
+    "SMM и личный бренд спортсмена. Как оформить профиль, создать видео или карусель, продвигать соцсети и составить контент-план.",
     0
    ],
    [
@@ -1486,7 +1486,7 @@ function renderWeek(days){
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
    const hint=esc(time+' '+title+(note?' · '+note:''));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b></div>`;
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${category==="media"&&note?`<small>${esc(note)}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
