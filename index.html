@@ -149,6 +149,13 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 .ev.lane{padding-inline:4px;font-size:11px}
 .ev.lane .ev-time{font-size:9px}
 .ag li>span:last-child{min-width:0;overflow-wrap:anywhere}
+
+.media-program{margin-top:6px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.media-program>p{margin:12px 0;color:var(--muted)}
+.media-slots{list-style:none;margin:0;padding:0}
+.media-slots li{display:grid;grid-template-columns:7.8em minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.media-slots time{font-family:var(--f-mono);font-size:11px;color:var(--muted);padding-top:3px}
+.media-slots p{margin:2px 0 0;color:var(--muted);font-size:13px}
 </style>
 
 </head>
@@ -176,6 +183,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   </div>
   <div class="agenda"><div class="daypick" id="daypick" role="group" aria-label="День"></div><ul class="ag" id="ag"></ul></div>
   <div class="scroll weekwrap"><div class="week" id="week"></div></div>
+  <details class="media-program"><summary>Подробная программа медиадня</summary><p>Четверг, 19 ноября · SMM и личный бренд в социальных сетях</p><ol class="media-slots"><li><time>12:40–13:05</time><div><strong>Зачем вести соцсети</strong><p>Определить цель блога.</p></div></li><li><time>13:05–13:35</time><div><strong>Личный бренд и стратегия блога</strong><p>Разобрать страницы спортсменов и выбрать, что применить у себя.</p></div></li><li><time>13:35–14:15</time><div><strong>Площадка и формат</strong><p>Выбрать соцсеть и подходящие форматы контента.</p></div></li><li><time>14:15–14:30</time><div><strong>Перерыв</strong></div></li><li><time>14:30–15:15</time><div><strong>Оформление профиля</strong><p>Написать описание профиля.</p></div></li><li><time>15:15–15:55</time><div><strong>Видео, сторителлинг и карусели</strong><p>Написать сценарий видео или текст для карусели.</p></div></li><li><time>15:55–16:20</time><div><strong>Продвижение в соцсетях</strong><p>Разобрать алгоритмы, вовлечённость и типичные ошибки.</p></div></li><li><time>16:20–16:35</time><div><strong>Контент-план спортсмена</strong><p>Составить план публикаций.</p></div></li><li><time>16:35–16:40</time><div><strong>Подведение итогов</strong></div></li></ol></details>
   <p class="note">Объём программы по общей сетке</p><div class="sumwrap"><div class="sum" id="sum"></div><div class="sum" id="sum2"></div></div>
 
 </section>
@@ -255,16 +263,7 @@ const DAYS=[
     "acad",
     "Диагностика: русский язык",
     "Манжикова И.Н.",
-    0,
-    0,
-    null,
-    null,
-    {
-     "senior": [
-      "Биоимпеданс",
-      "3 участницы"
-     ]
-    }
+    0
    ],
    [
     880,
@@ -272,16 +271,7 @@ const DAYS=[
     "acad",
     "Диагностика: биология",
     "Карев Д.А. · квест",
-    0,
-    0,
-    null,
-    null,
-    {
-     "senior": [
-      "Эндокринолог",
-      "По результатам замера"
-     ]
-    }
+    0
    ],
    [
     930,
@@ -289,16 +279,7 @@ const DAYS=[
     "acad",
     "Диагностика: математика",
     "Колоскова Е.В.",
-    0,
-    0,
-    null,
-    null,
-    {
-     "senior": [
-      "Психология",
-      "Тема согласуется"
-     ]
-    }
+    0
    ],
    [
     980,
@@ -324,6 +305,22 @@ const DAYS=[
     "До согласования",
     1
    ]
+  ],
+  "senior": [
+   [
+    830,
+    870,
+    "proj",
+    "Психологический блок",
+    "Старшие"
+   ],
+   [
+    870,
+    970,
+    "proj",
+    "Анализ информации",
+    "Старшие"
+   ]
   ]
  },
  {
@@ -340,7 +337,14 @@ const DAYS=[
    ],
    [
     720,
-    760,
+    750,
+    "acad",
+    "Лекция о биоимпедансе",
+    "Столовая (предварительно)."
+   ],
+   [
+    750,
+    780,
     "meal",
     "Обед*",
     "До согласования",
@@ -451,6 +455,13 @@ const DAYS=[
     "До согласования",
     1
    ]
+  ],
+  "bio": [
+   630,
+   720,
+   "ext",
+   "Биоимпеданс",
+   "По 3–5 человек по вызову."
   ]
  },
  {
@@ -540,6 +551,13 @@ const DAYS=[
     "До согласования",
     1
    ]
+  ],
+  "bio": [
+   630,
+   720,
+   "ext",
+   "Биоимпеданс",
+   "По 3–5 человек по вызову."
   ]
  },
  {
@@ -564,11 +582,24 @@ const DAYS=[
    ],
    [
     760,
+    855,
+    "media",
+    "Медиадень",
+    ""
+   ],
+   [
+    855,
+    870,
+    "meal",
+    "Перерыв",
+    ""
+   ],
+   [
+    870,
     1000,
     "media",
     "Медиадень",
-    "SMM и личный бренд спортсмена. Как оформить профиль, создать видео или карусель, продвигать соцсети и составить контент-план.",
-    0
+    ""
    ],
    [
     1000,
@@ -594,6 +625,13 @@ const DAYS=[
     "До согласования",
     1
    ]
+  ],
+  "bio": [
+   630,
+   720,
+   "ext",
+   "Биоимпеданс",
+   "По 3–5 человек по вызову."
   ]
  },
  {
@@ -737,6 +775,13 @@ const DAYS=[
     "До согласования",
     1
    ]
+  ],
+  "bio": [
+   630,
+   720,
+   "ext",
+   "Биоимпеданс",
+   "По 3–5 человек по вызову."
   ]
  }
 ];
@@ -1251,8 +1296,8 @@ const STAFF=[
   "d": [
    [
     [
-     930,
-     970,
+     830,
+     870,
      "s"
     ]
    ],
@@ -1273,43 +1318,48 @@ const STAFF=[
     ]
    ]
   ],
-  "q": "Сонастройка, встречи и рефлексия"
+  "q": "Блок для старших, встреча в среду и рефлексия"
  },
  {
   "n": "Специалист биоимпеданса",
   "c": "--ext",
   "d": [
+   [],
    [
     [
-     830,
-     870,
+     630,
+     720,
+     "s"
+    ],
+    [
+     720,
+     750,
      "s"
     ]
    ],
-   [],
-   [],
-   [],
-   []
-  ],
-  "q": "3 участницы"
- },
- {
-  "n": "Эндокринолог",
-  "c": "--ext",
-  "d": [
    [
     [
-     880,
-     920,
+     630,
+     720,
      "s"
     ]
    ],
-   [],
-   [],
-   [],
-   []
+   [
+    [
+     630,
+     720,
+     "s"
+    ]
+   ],
+   [
+    [
+     630,
+     720,
+     "s"
+    ]
+   ]
   ],
-  "q": "Беседа по результатам"
+  "q": "Замеры по вызову и лекция во вторник"
  },
  {
   "n": "Медиакоманда",
@@ -1321,6 +1371,11 @@ const STAFF=[
    [
     [
      760,
+     855,
+     "s"
+    ],
+    [
+     870,
      1000,
      "s"
     ]
@@ -1366,6 +1421,16 @@ document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style=
 // Требует согласования
 const AG=[
  [
+  "Лекция о биоимпедансе",
+  "Вт, 12:00–12:30",
+  "Подтвердить столовую. Обед поставлен предварительно на 12:30–13:00."
+ ],
+ [
+  "Очередность на биоимпеданс",
+  "Вт–пт, 10:30–12:00",
+  "По 3–5 человек по вызову. Уточнить состав и время выхода с тренировки."
+ ],
+ [
   "Время замеров во вторник",
   "13:00–13:40 по слайду 5",
   "Обзорный слайд указывает 13:00–13:50. В сетку внесено время из подробного слайда."
@@ -1374,11 +1439,6 @@ const AG=[
   "Время защиты в пятницу",
   "15:30–16:10 по слайду 7",
   "Обзорный слайд указывает 15:00–16:40. В сетку внесено время из подробного слайда."
- ],
- [
-  "Психология для старших",
-  "Пн, 15:30–16:10",
-  "Уточнить тему и ведущего."
  ],
  [
   "Вечерний волейбол",
@@ -1396,11 +1456,6 @@ const AG=[
   "Организаторы и питание"
  ],
  [
-  "Медицинский блок",
-  "Пн 13:50–14:30 и 14:40–15:20",
-  "Уточнить трёх участниц на биоимпеданс и порядок беседы с эндокринологом."
- ],
- [
   "Кураторы и группы",
   "Жеребьёвка в понедельник",
   "Подтвердить состав, сопровождение и смены."
@@ -1410,6 +1465,7 @@ document.getElementById("agree").innerHTML='<tr><th>Вопрос</th><th>Ког�
 
 
 function scheduleDays(){
+ const selection={person:null,g:null,mon:'all'};
  return DAYS.map(day=>{
   const events=[];
   let end=START;
@@ -1417,15 +1473,44 @@ function scheduleDays(){
    const [start,finish,category,title,note,provisional,,,,variants]=entry;
    if(start>end)events.push([end,start,'meal','Свободное время']);
    end=finish;
-   if(variants?.senior){
-    const [seniorTitle,seniorNote]=variants.senior;
-     events.push([start,finish,category,title,note,provisional,0,0,2]);
-     events.push([start,finish,'ext',seniorTitle,seniorNote,provisional,0,1,2]);
+   if(variants?.groups && selection.g!==null){
+    const [subject,teacher]=variants.groups[selection.g];
+    events.push([start,finish,category,subject,[teacher,note].filter(Boolean).join(' · '),provisional]);
    }else{
     events.push(entry);
    }
   }
-  return {...day,ev:events};
+
+  function inLane(event,lane){
+   const [start,finish,category,title,note,pre]=event;
+   return [start,finish,category,title,note,pre,0,lane,2];
+  }
+  let visible=events;
+  if(day.senior?.length){
+   const from=day.senior[0][0],to=day.senior.at(-1)[1];
+   const overlaps=event=>event[0]<to&&event[1]>from;
+   if(selection.person===null){
+    visible=events.map(event=>overlaps(event)?inLane(event,0):event);
+    visible.push(...day.senior.map(event=>inLane(event,1)));
+   }else if(selection.mon==='senior'){
+    visible=[...events.filter(event=>!overlaps(event)),...day.senior];
+   }
+  }
+
+  if(day.bio){
+   const [from,to]=day.bio;
+   const practice=visible.find(event=>event[2]==='train'&&event[0]<from&&event[1]===to);
+   if(practice && selection.person===null){
+    visible=visible.flatMap(event=>event===practice?[
+     [event[0],from,...event.slice(2,6)],
+     inLane([from,to,...event.slice(2,6)],0),
+     inLane(day.bio,1)
+    ]:[event]);
+   }else if(practice){
+    visible=visible.map(event=>event===practice?[...event.slice(0,4),'Биоимпеданс с 10:30 по вызову.']:event);
+   }
+  }
+  return {...day,ev:visible.sort((a,b)=>a[0]-b[0]||(a[7]??0)-(b[7]??0))};
  });
 }
 function fitWeekCards(){
@@ -1486,7 +1571,7 @@ function renderWeek(days){
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
    const hint=esc(time+' '+title+(note?' · '+note:''));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${category==="media"&&note?`<small>${esc(note)}</small>`:""}</div>`;
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${note&&(title==="Лекция о биоимпедансе"||title==="Биоимпеданс")?`<small>${esc(note)}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
