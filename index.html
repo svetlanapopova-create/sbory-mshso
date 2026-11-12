@@ -156,6 +156,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 .media-slots li{display:grid;grid-template-columns:7.8em minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .media-slots time{font-family:var(--f-mono);font-size:11px;color:var(--muted);padding-top:3px}
 .media-slots p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.ev.bio-measure{padding-inline:3px}
+.ev.bio-measure b{font-size:10px}
 </style>
 
 </head>
@@ -339,8 +341,8 @@ const DAYS=[
     720,
     750,
     "acad",
-    "Лекция о биоимпедансе",
-    "Столовая (предварительно)."
+    "Биоимпеданс. Лекция",
+    ""
    ],
    [
     750,
@@ -460,9 +462,10 @@ const DAYS=[
    630,
    720,
    "ext",
-   "Биоимпеданс",
-   "По 3–5 человек по вызову."
-  ]
+   "Биоимпеданс. Замеры",
+   "Группа 1"
+  ],
+  "bioGroup": 0
  },
  {
   "d": "Ср",
@@ -556,9 +559,10 @@ const DAYS=[
    630,
    720,
    "ext",
-   "Биоимпеданс",
-   "По 3–5 человек по вызову."
-  ]
+   "Биоимпеданс. Замеры",
+   "Группа 2"
+  ],
+  "bioGroup": 1
  },
  {
   "d": "Чт",
@@ -630,9 +634,10 @@ const DAYS=[
    630,
    720,
    "ext",
-   "Биоимпеданс",
-   "По 3–5 человек по вызову."
-  ]
+   "Биоимпеданс. Замеры",
+   "Группа 3"
+  ],
+  "bioGroup": 2
  },
  {
   "d": "Пт",
@@ -780,9 +785,10 @@ const DAYS=[
    630,
    720,
    "ext",
-   "Биоимпеданс",
-   "По 3–5 человек по вызову."
-  ]
+   "Биоимпеданс. Замеры",
+   "Резерв для дозамеров"
+  ],
+  "bioGroup": null
  }
 ];
 const COL={train:"--train",acad:"--acad",proj:"--proj",media:"--media",ext:"--ext",meal:"--meal"};
@@ -1421,14 +1427,14 @@ document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style=
 // Требует согласования
 const AG=[
  [
-  "Лекция о биоимпедансе",
+  "Биоимпеданс. Лекция",
   "Вт, 12:00–12:30",
-  "Подтвердить столовую. Обед поставлен предварительно на 12:30–13:00."
+  "Уточнить место лекции. Обед предварительно на 12:30–13:00."
  ],
  [
   "Очередность на биоимпеданс",
   "Вт–пт, 10:30–12:00",
-  "По 3–5 человек по вызову. Уточнить состав и время выхода с тренировки."
+  "Вт — группа 1, ср — группа 2, чт — группа 3. Пт — резерв для дозамеров. Уточнить время выхода с тренировки."
  ],
  [
   "Время замеров во вторник",
@@ -1506,8 +1512,9 @@ function scheduleDays(){
      inLane([from,to,...event.slice(2,6)],0),
      inLane(day.bio,1)
     ]:[event]);
-   }else if(practice){
-    visible=visible.map(event=>event===practice?[...event.slice(0,4),'Биоимпеданс с 10:30 по вызову.']:event);
+   }else if(practice && (day.bioGroup===null||selection.g===day.bioGroup)){
+    const callNote=day.bioGroup===null?'Дозамеры по вызову с 10:30.':day.bio[4]+' · замеры по вызову с 10:30.';
+    visible=visible.map(event=>event===practice?[...event.slice(0,4),callNote]:event);
    }
   }
   return {...day,ev:visible.sort((a,b)=>a[0]-b[0]||(a[7]??0)-(b[7]??0))};
@@ -1568,10 +1575,10 @@ function renderWeek(days){
   markup+='<div class="col">';
   for(const [start,end,category,title,note,pre,,lane,total] of day.ev){
    const time=fmt(start)+'–'+fmt(end);
-   const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':''].filter(Boolean).join(' ');
+   const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':'',title==='Биоимпеданс. Замеры'?'bio-measure':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
    const hint=esc(time+' '+title+(note?' · '+note:''));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${note&&(title==="Лекция о биоимпедансе"||title==="Биоимпеданс")?`<small>${esc(note)}</small>`:""}</div>`;
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${note&&title==="Биоимпеданс. Замеры"?`<small>${esc(note)}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
