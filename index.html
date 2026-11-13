@@ -171,11 +171,13 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 .org-table small{display:block;color:var(--muted);margin-top:3px}
 .org-table .org-pending{color:#865310}
 .org-table .org-time-note{white-space:normal}
-.org-materials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.org-materials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .org-materials article{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.org-materials h3{font-size:15px;margin:0 0 5px}
-.org-materials ul{margin:6px 0 0;padding-left:18px;font-size:13px;overflow-wrap:anywhere;list-style-type:square}
-.org-materials li+li{margin-top:4px}
+.org-materials .org-weekly{grid-column:1/-1;background:color-mix(in srgb,var(--ext) 8%,var(--surface));border-color:color-mix(in srgb,var(--ext) 25%,var(--line))}
+.org-materials h3{font-size:15px;margin:0 0 7px}
+.org-materials ul{margin:0;padding-left:17px;font-size:13px;overflow-wrap:anywhere;list-style-type:square}
+.org-materials li+li{margin-top:6px}
+.org-check-time{font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap;margin-right:4px}
 .org-table .org-prep{white-space:pre-line}
 .org-materials button{margin-top:6px}
 @media(max-width:640px){
@@ -250,52 +252,46 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <h2>Что подготовить</h2>
   <p id="org-sync-note" class="note" role="status" hidden></p>
   <div class="org-materials" id="org-materials">
-    <article>
-      <h3>Личные кабинеты и IBLS</h3>
+    <article class="org-weekly">
+      <h3>На всю неделю</h3>
       <ul>
-        <li>Пн, 16:20 · Активировать личные кабинеты.</li>
-        <li>Чт, 12:40 · Проверить вход в IBLS, интернет и материалы.</li>
-        <li>Уточнить место и ведущего блока IBLS.</li>
+        <li>Обеспечить полдник в рекреации 4-го этажа.</li>
       </ul>
     </article>
     <article>
-      <h3>Компьютеры и показ презентаций</h3>
+      <h3>Понедельник · 16.11</h3>
       <ul>
-        <li>Пт, 13:00 · Подготовить компьютеры в актовом зале. Проверить редактор презентаций.</li>
-        <li>Пт, к 15:30 · Проверить экран, звук и файлы трёх групп.</li>
+        <li><span class="org-check-time">К 13:20</span> Распечатать рабочие листы «Треугольник ожиданий».</li>
+        <li><span class="org-check-time">16:20</span> Активировать личные кабинеты.</li>
       </ul>
     </article>
     <article>
-      <h3>Замеры и проектные материалы</h3>
+      <h3>Вторник · 17.11</h3>
       <ul>
-        <li>Вт, к 13:00 · Собрать оборудование для трёх станций.</li>
-        <li>Проверить акселерометрию, пульсометрию и фиксацию траектории мяча.</li>
-        <li>Подготовить таблицу замеров, лист вопроса и гипотезы, шаблон презентации.</li>
+        <li><span class="org-check-time">К 12:00</span> Проверить показ презентации эндокринолога в рекреации 4-го этажа.</li>
+        <li><span class="org-check-time">К 13:00</span> Собрать оборудование для трёх станций. Проверить акселерометрию, пульсометрию и фиксацию траектории мяча.</li>
+        <li><span class="org-check-time">К 13:00</span> Подготовить таблицу замеров, лист вопроса и гипотезы, шаблон презентации.</li>
       </ul>
     </article>
     <article>
-      <h3>Медиадень</h3>
+      <h3>Среда · 18.11</h3>
       <ul>
-        <li>Чт, к 13:10 · Подготовить примеры страниц спортсменов, заготовки сценария и контент-плана.</li>
-        <li>Согласовать технику для съёмки и папку для фото и видео.</li>
+        <li><span class="org-check-time">К 16:20</span> Подключить и проверить проектор для психологов.</li>
       </ul>
     </article>
     <article>
-      <h3>Рабочие листы для сонастройки</h3>
+      <h3>Четверг · 19.11</h3>
       <ul>
-        <li>Пн, к 13:20 · Распечатать «Треугольник ожиданий».</li>
+        <li><span class="org-check-time">К 12:40</span> Проверить вход в IBLS, интернет и материалы. Уточнить место и ведущего.</li>
+        <li><span class="org-check-time">К 13:10</span> Подготовить примеры страниц спортсменов, заготовки сценария и контент-плана.</li>
+        <li><span class="org-check-time">К 13:10</span> Согласовать технику для съёмки и папку для фото и видео.</li>
       </ul>
     </article>
     <article>
-      <h3>Презентация эндокринолога</h3>
+      <h3>Пятница · 20.11</h3>
       <ul>
-        <li>Вт, к 12:00 · Открыть и проверить показ в рекреации 4-го этажа.</li>
-      </ul>
-    </article>
-    <article>
-      <h3>Проектор для психологов</h3>
-      <ul>
-        <li>Ср, к 16:20 · Подключить и проверить проектор.</li>
+        <li><span class="org-check-time">К 13:00</span> Подготовить компьютеры в актовом зале и проверить редактор презентаций.</li>
+        <li><span class="org-check-time">К 15:30</span> Проверить экран, звук и файлы трёх групп.</li>
       </ul>
     </article>
   </div>
@@ -1384,7 +1380,7 @@ const STAFF=[
   "q": "Открытие и закрытие модуля"
  },
  {
-  "n": "Тренер по волейболу",
+  "n": "Анна Артамонова",
   "c": "--train",
   "d": [
    [
@@ -1934,7 +1930,11 @@ async function refreshOrganisation(){
     renderSchedule();
     orgMaterials.innerHTML=published.materials.map(({title,text})=>{
       const points=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-      return '<article><h3>'+esc(title)+'</h3><ul>'+points.map(line=>'<li>'+esc(line)+'</li>').join('')+'</ul></article>';
+      const items=points.map(line=>{
+        const deadline=line.match(/^((?:К )?\d{2}:\d{2}) · (.+)$/u);
+        return deadline?'<li><span class="org-check-time">'+esc(deadline[1])+'</span> '+esc(deadline[2])+'</li>':'<li>'+esc(line)+'</li>';
+      });
+      return '<article'+(title==='На всю неделю'?' class="org-weekly"':'')+'><h3>'+esc(title)+'</h3><ul>'+items.join('')+'</ul></article>';
     }).join('');
   }catch{
     orgSyncNote.textContent=publishedOrganisation?'Связь прервалась. Показана последняя полученная версия.':'Онлайн-версия недоступна. Показана исходная сетка.';
