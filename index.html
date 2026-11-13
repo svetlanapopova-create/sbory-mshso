@@ -268,6 +268,18 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
       <h3>Медиадень</h3>
       <p><b>Чт, с 13:10.</b> Подготовить примеры страниц спортсменов, заготовки для сценария и контент-плана. Уточнить, на что снимают группы и куда складывают фото и видео для защиты.</p>
     </article>
+    <article>
+      <h3>Рабочие листы для сонастройки</h3>
+      <p>Пн, к 13:20 · актовый зал. Распечатать рабочие листы «Треугольник ожиданий» для участниц.</p>
+    </article>
+    <article>
+      <h3>Презентация эндокринолога</h3>
+      <p>Вт, к 12:00 · рекреация 4-го этажа. Открыть презентацию эндокринолога и проверить, что она выводится на экран.</p>
+    </article>
+    <article>
+      <h3>Проектор для психологов</h3>
+      <p>Ср, к 16:20. Подключить и проверить проектор для презентации психологов.</p>
+    </article>
   </div>
   <button id="org-media" type="button" class="tab">Открыть программу медиадня</button>
 </section>
@@ -1779,7 +1791,6 @@ renderSchedule();
 const orgDay=document.getElementById("org-day"), orgRoom=document.getElementById("org-room");
 const orgRows=document.getElementById("org-rows");
 const orgUnknown="Уточнить";
-const psychologyPrep={"Психологическая сонастройка": "Знакомство со специалистами и анонс психологических встреч. Разминка «Круги на воде» с ассоциациями к словам о психологии. Заполнить рабочие листы «Треугольник ожиданий» и оставить у психологов до пятницы.", "Психология": "Старшие участницы выбирают тему и выполняют упражнение. Варианты тем: планирование, достижение цели, отношения, баланс сфер жизни, интересы и хобби.", "Встреча с психологами": "Презентация «Что такое психология?»: миф о Психее, специалисты, направления и факты. Затем ответы на вопросы участниц.", "Заключительная рефлексия": "Рефлексия в двух группах. Вернуться к рабочим листам «Треугольник ожиданий» и обсудить, какие ожидания были и какие реализовались."};
 const orgStationStaff=[
   ["Кабинет 404","Мачучин И. А."],["Лестница","Колоскова Е. В."],["Спортивный зал","Мясоедова А. К."]
 ];
@@ -1787,7 +1798,7 @@ const orgStationStaff=[
 function orgDayRows(day,index){
   const rows=[];
   const staffAt=(start,end)=>STAFF.filter(person=>person.d[index].some(([a,b])=>a===start&&b===end)).map(person=>person.n).join(", ");
-  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||defaultRoom(title)||orgUnknown,staff:staff||orgUnknown,group,pre,prep:psychologyPrep[title]||""});
+  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||defaultRoom(title)||orgUnknown,staff:staff||orgUnknown,group,pre,prep:""});
   const senior=day.senior||[];
   const schoolGroup=(start,end)=>senior.some(([a,b])=>a<end&&b>start)?"Школьницы":"Все участницы";
   let previous=START;
