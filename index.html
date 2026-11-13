@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: один столбец ~1080px, три окна-вкладки: расписание, команда, согласования */
+/* Layout: один столбец ~1080px, вкладки расписания, команды и организации */
 :root{
   --bg:#f5f6f8; --surface:#ffffff; --ink:#162033; --muted:#5a6377; --line:#dde2ea;
   --train:#2d5c9c; --acad:#2b7a4d; --proj:#1d7a82; --media:#7650ad; --ext:#b8730f; --meal:#8a90a0;
@@ -134,11 +134,6 @@ header{display:flex;flex-direction:column;gap:12px}
   .legend .chip{font-size:11.5px}
   .sum{grid-template-columns:1fr 1fr}
   .tbl.minw{min-width:0}
-  #agree tr:first-child{display:none}
-  #agree tr{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-bottom:1px solid var(--line)}
-  #agree tr:last-child{border-bottom:0}
-  #agree td{border:0;padding:0}
-  #agree td:not(:first-child){font-size:13px;color:var(--muted)}
 }
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 
@@ -219,7 +214,6 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     <span class="chip" style="--c:var(--proj)"><i></i>Исследовательский проект</span>
     <span class="chip" style="--c:var(--media)"><i></i>Медиа</span>
     <span class="chip" style="--c:var(--ext)"><i></i>Бассейн, биоимпеданс</span>
-    <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно, до согласования</span>
   </div>
   <div class="agenda"><div class="daypick" id="daypick" role="group" aria-label="День"></div><ul class="ag" id="ag"></ul></div>
   <div class="scroll weekwrap"><div class="week" id="week"></div></div>
@@ -233,7 +227,6 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <p class="note">Занятость команды по презентации. В пятницу комиссия работает с 15:30 до 16:10. Смены кураторов уточняются.</p>
   <div class="legend">
     <span class="chip" style="--c:var(--muted)"><i></i>По программе</span>
-    <span class="chip dash" style="--c:var(--muted)"><i style="background:transparent"></i>Предварительно</span>
   </div>
   <div class="scroll staffwrap"><table class="tbl staff" id="staff"></table></div>
   <div class="staffm" id="staffm"></div>
@@ -279,14 +272,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <button id="org-media" type="button" class="tab">Открыть программу медиадня</button>
 </section>
 
-<section class="pane" data-tab="agree" data-label="Требует согласования">
-  <h2>Требует согласования</h2>
-  <div class="scroll"><table class="tbl minw" id="agree"></table></div>
-  <p class="note">Питание, переходы и вечерние спортивные блоки требуют согласования.</p>
-</section>
-
-
-<footer>Источники: «Модуль М1 расписание», редакция от 12.11, «Программа SMM лекции медиа.docx». Рабочая версия, согласование отдельных блоков не подтверждено. Все времена указаны по Москве.</footer>
+<footer>Источники: «Модуль М1 расписание», редакция от 12.11, «Программа SMM лекции медиа.docx». Все времена указаны по Москве.</footer>
 </div>
 
 <script>
@@ -309,9 +295,9 @@ const DAYS=[
     720,
     760,
     "meal",
-    "Обед*",
-    "До согласования",
-    1
+    "Обед",
+    "",
+    0
    ],
    [
     780,
@@ -333,7 +319,13 @@ const DAYS=[
     "proj",
     "Организационная часть",
     "Колоскова С.",
-    0
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Актовый зал"
+    }
    ],
    [
     800,
@@ -403,17 +395,17 @@ const DAYS=[
     1020,
     1110,
     "train",
-    "Волейбол*",
-    "Вечерний, до согласования",
-    1
+    "Волейбол",
+    "",
+    0
    ],
    [
     1110,
     1140,
     "meal",
-    "Ужин*",
-    "До согласования",
-    1
+    "Ужин",
+    "",
+    0
    ]
   ],
   "senior": [
@@ -466,9 +458,9 @@ const DAYS=[
     750,
     780,
     "meal",
-    "Обед*",
-    "До согласования",
-    1
+    "Обед",
+    "",
+    0
    ],
    [
     780,
@@ -572,17 +564,17 @@ const DAYS=[
     1050,
     1140,
     "ext",
-    "Бассейн*",
-    "До согласования",
-    1
+    "Бассейн",
+    "",
+    0
    ],
    [
     1140,
     1170,
     "meal",
-    "Ужин*",
-    "До согласования",
-    1
+    "Ужин",
+    "",
+    0
    ]
   ],
   "bio": [
@@ -610,9 +602,9 @@ const DAYS=[
     720,
     760,
     "meal",
-    "Обед*",
-    "До согласования",
-    1
+    "Обед",
+    "",
+    0
    ],
    [
     780,
@@ -700,17 +692,17 @@ const DAYS=[
     1020,
     1110,
     "train",
-    "Волейбол*",
-    "Вечерний, до согласования",
-    1
+    "Волейбол",
+    "",
+    0
    ],
    [
     1110,
     1140,
     "meal",
-    "Ужин*",
-    "До согласования",
-    1
+    "Ужин",
+    "",
+    0
    ]
   ],
   "bio": [
@@ -738,9 +730,9 @@ const DAYS=[
     720,
     760,
     "meal",
-    "Обед*",
-    "До согласования",
-    1
+    "Обед",
+    "",
+    0
    ],
    [
     760,
@@ -784,17 +776,17 @@ const DAYS=[
     1050,
     1140,
     "ext",
-    "Бассейн*",
-    "До согласования",
-    1
+    "Бассейн",
+    "",
+    0
    ],
    [
     1140,
     1170,
     "meal",
-    "Ужин*",
-    "До согласования",
-    1
+    "Ужин",
+    "",
+    0
    ]
   ],
   "bio": [
@@ -822,9 +814,9 @@ const DAYS=[
     720,
     760,
     "meal",
-    "Обед*",
-    "До согласования",
-    1
+    "Обед",
+    "",
+    0
    ],
    [
     780,
@@ -914,17 +906,17 @@ const DAYS=[
     1020,
     1110,
     "train",
-    "Волейбол*",
-    "Вечерний, до согласования",
-    1
+    "Волейбол",
+    "",
+    0
    ],
    [
     1110,
     1140,
     "meal",
-    "Ужин*",
-    "До согласования",
-    1
+    "Ужин",
+    "",
+    0
    ]
   ]
  }
@@ -1323,26 +1315,7 @@ const STAFF=[
     [
      1020,
      1110,
-     "d"
-    ]
-   ],
-   [
-    [
-     600,
-     720,
      "s"
-    ]
-   ],
-   [
-    [
-     600,
-     720,
-     "s"
-    ],
-    [
-     1020,
-     1110,
-     "d"
     ]
    ],
    [
@@ -1361,11 +1334,30 @@ const STAFF=[
     [
      1020,
      1110,
-     "d"
+     "s"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ]
+   ],
+   [
+    [
+     600,
+     720,
+     "s"
+    ],
+    [
+     1020,
+     1110,
+     "s"
     ]
    ]
   ],
-  "q": "Вечерний зал требует согласования"
+  "q": "Утренние и вечерние тренировки"
  },
  {
   "n": "Ремизовская К.",
@@ -1481,7 +1473,7 @@ const STAFF=[
     [
      1050,
      1140,
-     "d"
+     "s"
     ]
    ],
    [],
@@ -1489,12 +1481,12 @@ const STAFF=[
     [
      1050,
      1140,
-     "d"
+     "s"
     ]
    ],
    []
   ],
-  "q": "До согласования"
+  "q": "Тренировки в бассейне"
  },
  {
   "n": "Цымбал А. Н.",
@@ -1579,58 +1571,7 @@ for(const p of STAFF){let sol=0,dash=0;
   for(const day of p.d){s+='<td><div class="strip">'+day.map(([a,b,k])=>{if(k==="s")sol+=b-a;else dash+=b-a;return `<i class="${k}" style="--c:var(${p.c});left:${(a-START)/6}%;width:${(b-a)/6}%" title="${fmt(a)}–${fmt(b)}${k==="d"?" · предварительно":""}"></i>`}).join("")+'</div>'+day.map(([a,b,k])=>`<span class="staff-time">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join("")+'</td>';}
   s+=`<td class="hrs mono">${sol?hh(sol):"—"}${dash?`<small>+ до ${hh(dash)}</small>`:""}</td></tr>`;}
 document.getElementById("staff").innerHTML=s;
-document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style="--c:var(${p.c})"><b>${p.n}</b><small>${p.q}</small><ul>`+p.d.map((day,i)=>day.length?`<li><span>${DAYS[i].d}</span><span>${day.map(([a,b,k])=>`<span class="${k}">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join(", ")}</span></li>`:"").join("")+'</ul></div>').join("")+'<p class="note">* предварительно, до согласования</p>';
-
-// Требует согласования
-const AG=[
- [
-  "Биоимпеданс. Лекция",
-  "Вт, 12:00–12:30",
-  "Уточнить место лекции. Обед предварительно на 12:30–13:00."
- ],
- [
-  "Очередность на биоимпеданс",
-  "Вт–чт, 10:30–12:00",
-  "Вт — группа 1, ср — группа 2, чт — группа 3. Уточнить время выхода с тренировки."
- ],
- [
-  "Время замеров во вторник",
-  "13:00–13:40 по слайду 5",
-  "Обзорный слайд указывает 13:00–13:50. В сетку внесено время из подробного слайда."
- ],
- [
-  "Время защиты в пятницу",
-  "15:30–16:10 по слайду 7",
-  "Обзорный слайд указывает 15:00–16:40. В сетку внесено время из подробного слайда."
- ],
- [
-  "Программа медиадня",
-  "Чт, с 13:10",
-  "Уточнить длительность первых тем после работы с IBLS."
- ],
- [
-  "Вечерний волейбол",
-  "Пн, ср, пт 17:00–18:30",
-  "Зал и тренеры"
- ],
- [
-  "Бассейн",
-  "Вт, чт 17:30–19:00",
-  "Школа плавания и время перехода"
- ],
- [
-  "Питание и восстановление",
-  "Ежедневно",
-  "Организаторы и питание"
- ],
- [
-  "Кураторы и группы",
-  "Жеребьёвка в понедельник",
-  "Подтвердить состав, сопровождение и смены."
- ]
-];
-document.getElementById("agree").innerHTML='<tr><th>Вопрос</th><th>Когда</th><th>С кем</th></tr>'+AG.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
-
+document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style="--c:var(${p.c})"><b>${p.n}</b><small>${p.q}</small><ul>`+p.d.map((day,i)=>day.length?`<li><span>${DAYS[i].d}</span><span>${day.map(([a,b,k])=>`<span class="${k}">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join(", ")}</span></li>`:"").join("")+'</ul></div>').join("");
 
 const routeView=document.getElementById('route-view');
 function scheduleDays(){
