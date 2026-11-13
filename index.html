@@ -179,7 +179,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 .org-materials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .org-materials article{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .org-materials h3{font-size:15px;margin:0 0 5px}
-.org-materials p{margin:6px 0;font-size:13px}
+.org-materials p{margin:6px 0;font-size:13px;white-space:pre-line;overflow-wrap:anywhere}
+.org-table .org-prep{white-space:pre-line}
 .org-materials button{margin-top:6px}
 @media(max-width:640px){
   .org-materials{grid-template-columns:1fr}
@@ -253,7 +254,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     </table>
   </div>
   <h2>Что подготовить</h2>
-  <div class="org-materials">
+  <p id="org-sync-note" class="note" role="status" hidden></p>
+  <div class="org-materials" id="org-materials">
     <article>
       <h3>Личные кабинеты и IBLS</h3>
       <p><b>Пн, 16:20–16:40.</b> На запуске проектов предусмотрена активация личных кабинетов.</p>
@@ -272,9 +274,9 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     <article>
       <h3>Медиадень</h3>
       <p><b>Чт, с 13:10.</b> Подготовить примеры страниц спортсменов, заготовки для сценария и контент-плана. Уточнить, на что снимают группы и куда складывают фото и видео для защиты.</p>
-      <button id="org-media" type="button" class="tab">Открыть программу медиадня</button>
     </article>
   </div>
+  <button id="org-media" type="button" class="tab">Открыть программу медиадня</button>
 </section>
 
 <section class="pane" data-tab="agree" data-label="Требует согласования">
@@ -1802,21 +1804,50 @@ function orgDayRows(day,index){
 }
 
 const orgWeek=DAYS.map(orgDayRows);
+const orgMaterials=document.getElementById('org-materials');
+const orgSyncNote=document.getElementById('org-sync-note');
+const orgApi='https://sqcgoomuxebgtkysiiap.supabase.co/rest/v1/rpc/m1_organisation';
+const orgKey='sb_publishable_ghhXKcliBSKM_bZSvy9nTg_OvwmcxX6';
+let orgPublished, orgLoading=false;
+const orgMinutes=time=>Number(time.slice(0,2))*60+Number(time.slice(3,5));
 orgDay.replaceChildren(...DAYS.map((day,index)=>new Option(day.d+" · "+day.date,index)));
 orgDay.value=String(cur);
 function renderOrganisation(){
-  const rows=orgWeek[Number(orgDay.value)];
+  const index=Number(orgDay.value);
+  const day='2026-11-'+DAYS[index].date.slice(0,2);
+  const rows=orgPublished?orgPublished.slots.filter(row=>row.day===day).map(row=>({
+    ...row,start:orgMinutes(row.start),end:orgMinutes(row.end),room:row.room||orgUnknown,staff:row.staff||orgUnknown
+  })):orgWeek[index];
   const room=orgRoom.value;
   const rooms=[...new Set(rows.map(row=>row.room))].sort((a,b)=>a===orgUnknown?1:b===orgUnknown?-1:a.localeCompare(b,"ru"));
   orgRoom.replaceChildren(new Option("Все помещения",""),...rooms.map(room=>new Option(room===orgUnknown?"Место уточняется":room,room)));
   if(rooms.includes(room))orgRoom.value=room;
   const visible=rows.filter(row=>!orgRoom.value||row.room===orgRoom.value);
-  orgRows.innerHTML=visible.map(({start,end,title,room,staff,group,pre})=>
+  orgRows.innerHTML=visible.map(({start,end,title,room,staff,group,pre,prep})=>
     '<tr><td><time>'+fmt(start)+'–'+fmt(end)+'</time>'+(pre?'<small class="org-time-note org-pending">Предварительно</small>':'')+
     '</td><td'+(room===orgUnknown?' class="org-pending"':'')+'>'+esc(room)+
     '</td><td'+(staff===orgUnknown?' class="org-pending"':'')+'>'+esc(staff)+
-    '</td><td><b>'+esc(title)+'</b><small>'+esc(group)+'</small></td></tr>'
+    '</td><td><b>'+esc(title)+'</b><small>'+esc(group)+'</small>'+
+    (prep?'<small class="org-prep">Подготовить: '+esc(prep)+'</small>':'')+'</td></tr>'
   ).join("");
+}
+async function refreshOrganisation(){
+  if(orgLoading||document.hidden||document.querySelector('[data-tab="org"]').hidden)return;
+  orgLoading=true;
+  try{
+    const response=await fetch(orgApi,{method:'POST',headers:{apikey:orgKey,'Content-Type':'application/json'},body:'{}',cache:'no-store',signal:AbortSignal.timeout(8000)});
+    if(!response.ok)throw new Error('Organisation unavailable');
+    const published=await response.json();
+    if(!published?.revision||!Array.isArray(published.slots)||!Array.isArray(published.materials))throw new Error('Invalid organisation');
+    orgSyncNote.hidden=true;
+    if(published.revision===orgPublished?.revision)return;
+    orgPublished=published;
+    renderOrganisation();
+    orgMaterials.innerHTML=published.materials.map(({title,text})=>'<article><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p></article>').join('');
+  }catch{
+    orgSyncNote.textContent=orgPublished?'Связь прервалась. Показана последняя полученная версия.':'Онлайн-версия недоступна. Показана исходная сетка.';
+    orgSyncNote.hidden=false;
+  }finally{orgLoading=false}
 }
 orgDay.addEventListener("change",renderOrganisation);
 orgRoom.addEventListener("change",renderOrganisation);
@@ -1839,11 +1870,14 @@ renderOrganisation();
     panes.forEach((p,k)=>p.hidden=k!==i);
     tabs.forEach((t,k)=>t.setAttribute("aria-selected",k===i?"true":"false"));
     try{history.replaceState(null,"","#"+panes[i].dataset.tab)}catch(e){}
+    if(panes[i].dataset.tab==='org')refreshOrganisation();
   }
   tabs.forEach(t=>t.addEventListener("click",()=>show(t.dataset.t)));
   bar.addEventListener("keydown",e=>{const i=tabs.indexOf(document.activeElement);if(i<0)return;const j=e.key==="ArrowRight"?i+1:e.key==="ArrowLeft"?i-1:-1;if(j<0||j>=tabs.length)return;tabs[j].focus();show(tabs[j].dataset.t)});
   show((location.hash||"").slice(1)||"week");
 })();
+document.addEventListener('visibilitychange',refreshOrganisation);
+setInterval(refreshOrganisation,5000);
 </script>
 
 </body>
