@@ -174,7 +174,8 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 .org-materials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .org-materials article{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .org-materials h3{font-size:15px;margin:0 0 5px}
-.org-materials p{margin:6px 0;font-size:13px;white-space:pre-line;overflow-wrap:anywhere}
+.org-materials ul{margin:6px 0 0;padding-left:18px;font-size:13px;overflow-wrap:anywhere;list-style-type:square}
+.org-materials li+li{margin-top:4px}
 .org-table .org-prep{white-space:pre-line}
 .org-materials button{margin-top:6px}
 @media(max-width:640px){
@@ -251,34 +252,51 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
   <div class="org-materials" id="org-materials">
     <article>
       <h3>Личные кабинеты и IBLS</h3>
-      <p><b>Пн, 16:20–16:40.</b> На запуске проектов предусмотрена активация личных кабинетов.</p>
-      <p><b>Чт, 12:40–13:10.</b> Для работы с IBLS проверить вход, интернет и доступ к материалам. Уточнить помещение и ведущего.</p>
+      <ul>
+        <li>Пн, 16:20 · Активировать личные кабинеты.</li>
+        <li>Чт, 12:40 · Проверить вход в IBLS, интернет и материалы.</li>
+        <li>Уточнить место и ведущего блока IBLS.</li>
+      </ul>
     </article>
     <article>
       <h3>Компьютеры и показ презентаций</h3>
-      <p><b>Пт, 13:00–13:40 · актовый зал.</b> По программе нужны компьютеры для доработки проектов. Уточнить количество и доступ к редактору презентаций.</p>
-      <p><b>К защите в 15:30.</b> Проверить вывод изображения, звук и открытие файлов трёх групп.</p>
+      <ul>
+        <li>Пт, 13:00 · Подготовить компьютеры в актовом зале. Проверить редактор презентаций.</li>
+        <li>Пт, к 15:30 · Проверить экран, звук и файлы трёх групп.</li>
+      </ul>
     </article>
     <article>
       <h3>Замеры и проектные материалы</h3>
-      <p><b>Вт, 13:00–13:40.</b> Согласовать комплекты для трёх станций. По темам проектов проверить акселерометрию, пульсометрию и способ фиксации траектории мяча.</p>
-      <p>Подготовить таблицу замеров с единицами измерения, лист с вопросом и гипотезой и шаблон презентации с результатами и выводом.</p>
+      <ul>
+        <li>Вт, к 13:00 · Собрать оборудование для трёх станций.</li>
+        <li>Проверить акселерометрию, пульсометрию и фиксацию траектории мяча.</li>
+        <li>Подготовить таблицу замеров, лист вопроса и гипотезы, шаблон презентации.</li>
+      </ul>
     </article>
     <article>
       <h3>Медиадень</h3>
-      <p><b>Чт, с 13:10.</b> Подготовить примеры страниц спортсменов, заготовки для сценария и контент-плана. Уточнить, на что снимают группы и куда складывают фото и видео для защиты.</p>
+      <ul>
+        <li>Чт, к 13:10 · Подготовить примеры страниц спортсменов, заготовки сценария и контент-плана.</li>
+        <li>Согласовать технику для съёмки и папку для фото и видео.</li>
+      </ul>
     </article>
     <article>
       <h3>Рабочие листы для сонастройки</h3>
-      <p>Пн, к 13:20 · актовый зал. Распечатать рабочие листы «Треугольник ожиданий» для участниц.</p>
+      <ul>
+        <li>Пн, к 13:20 · Распечатать «Треугольник ожиданий».</li>
+      </ul>
     </article>
     <article>
       <h3>Презентация эндокринолога</h3>
-      <p>Вт, к 12:00 · рекреация 4-го этажа. Открыть презентацию эндокринолога и проверить, что она выводится на экран.</p>
+      <ul>
+        <li>Вт, к 12:00 · Открыть и проверить показ в рекреации 4-го этажа.</li>
+      </ul>
     </article>
     <article>
       <h3>Проектор для психологов</h3>
-      <p>Ср, к 16:20. Подключить и проверить проектор для презентации психологов.</p>
+      <ul>
+        <li>Ср, к 16:20 · Подключить и проверить проектор.</li>
+      </ul>
     </article>
   </div>
   <button id="org-media" type="button" class="tab">Открыть программу медиадня</button>
@@ -476,7 +494,14 @@ const DAYS=[
     750,
     "acad",
     "Биоимпеданс. Лекция",
-    ""
+    "",
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Рекреация 4-го этажа"
+    }
    ],
    [
     750,
@@ -772,7 +797,13 @@ const DAYS=[
     "media",
     "Медиадень",
     "",
-    0
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Актовый зал"
+    }
    ],
    [
     855,
@@ -786,7 +817,14 @@ const DAYS=[
     1000,
     "media",
     "Медиадень",
-    ""
+    "",
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Актовый зал"
+    }
    ],
    [
     1000,
@@ -1635,6 +1673,12 @@ document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style=
 
 let publishedOrganisation;
 const defaultRoom=title=>title==='Обед'||title==='Ужин'?'Столовая':title==='Свободное время'?'Рекреация 4-го этажа':'';
+function scheduleDetails(title,note,room){
+ const places=(room||'').split(' · ').map(place=>place.trim().replace(/^кабинет\s+№?\s*(?=\d)/iu,''))
+   .filter(place=>place&&place.toLowerCase()!==title.toLowerCase());
+ if(title==='Биоимпеданс. Замеры'&&note)places.push(note);
+ return places.join(' · ');
+}
 function eventRooms(day,event,group){
  const [start,end,category,title,,,,lane,total]=event;
  let matches=publishedOrganisation?.slots.filter(row=>row.day==='2026-11-'+day.date.slice(0,2)&&row.start===fmt(start)&&row.end===fmt(end));
@@ -1745,7 +1789,6 @@ function fitWeekCards(){
  ).join(', '));
 }
 
-const showLead=new Set(["Анализ информации", "Встреча с психологами", "Заключительная рефлексия", "Психологическая сонастройка", "Психология"]);
 function renderWeek(days){
  let markup='<div></div>'+days.map(day=>
   `<div class="dayhead"><b>${day.d}</b><span>${day.date}</span></div>`
@@ -1761,8 +1804,9 @@ function renderWeek(days){
    const time=fmt(start)+'–'+fmt(end);
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':'',title==='Биоимпеданс. Замеры'?'bio-measure':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
-   const hint=esc([time+' '+title,note,room].filter(Boolean).join(' · '));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${room||note&&(title==="Биоимпеданс. Замеры"||showLead.has(title))?`<small>${esc([room,title==="Биоимпеданс. Замеры"||showLead.has(title)?note:""].filter(Boolean).join(" · "))}</small>`:""}</div>`;
+   const details=scheduleDetails(title,note,room);
+   const hint=esc([time+' '+title,details].filter(Boolean).join(' · '));
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${details?`<small>${esc(details)}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
@@ -1783,7 +1827,10 @@ document.fonts?.ready.then(fitWeekCards);
 function renderSchedule(){
  const days=scheduleDays();
  renderWeek(days);
- drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>`<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${sub||room?`<small>${esc([sub,room].filter(Boolean).join(" · "))}</small>`:''}</span></li>`).join('')};drawAg();
+ drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>{
+   const details=scheduleDetails(t,sub,room);
+   return `<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${details?`<small>${esc(details)}</small>`:''}</span></li>`;
+  }).join('')};drawAg();
 }
 routeView.addEventListener('change',renderSchedule);
 renderSchedule();
@@ -1866,7 +1913,10 @@ async function refreshOrganisation(){
     publishedOrganisation=published;
     renderOrganisation();
     renderSchedule();
-    orgMaterials.innerHTML=published.materials.map(({title,text})=>'<article><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p></article>').join('');
+    orgMaterials.innerHTML=published.materials.map(({title,text})=>{
+      const points=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+      return '<article><h3>'+esc(title)+'</h3><ul>'+points.map(line=>'<li>'+esc(line)+'</li>').join('')+'</ul></article>';
+    }).join('');
   }catch{
     orgSyncNote.textContent=publishedOrganisation?'Связь прервалась. Показана последняя полученная версия.':'Онлайн-версия недоступна. Показана исходная сетка.';
     orgSyncNote.hidden=false;
