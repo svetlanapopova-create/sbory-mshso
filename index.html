@@ -631,7 +631,12 @@ const DAYS=[
    720,
    "ext",
    "Биоимпеданс. Замеры",
-   "Группа 1"
+   "Группа 1",
+   0,
+   null,
+   null,
+   null,
+   {"location": "Кабинет массажа"}
   ],
   "bioGroup": 0
  },
@@ -759,7 +764,12 @@ const DAYS=[
    720,
    "ext",
    "Биоимпеданс. Замеры",
-   "Группа 2"
+   "Группа 2",
+   0,
+   null,
+   null,
+   null,
+   {"location": "Кабинет массажа"}
   ],
   "bioGroup": 1
  },
@@ -856,7 +866,12 @@ const DAYS=[
    720,
    "ext",
    "Биоимпеданс. Замеры",
-   "Группа 3"
+   "Группа 3",
+   0,
+   null,
+   null,
+   null,
+   {"location": "Кабинет массажа"}
   ],
   "bioGroup": 2
  },
@@ -1503,7 +1518,7 @@ const STAFF=[
   "q": "Медиадень"
  },
  {
-  "n": "Школа плавания",
+  "n": "Дронова Наталья",
   "c": "--ext",
   "d": [
    [],
@@ -1866,8 +1881,8 @@ function orgDayRows(day,index){
     add(start,end,title,details?.location,note||staffAt(start,end),"Старшие",pre);
   }
   if(day.bio){
-    const [start,end,,title,group,pre]=day.bio;
-    add(start,end,title,"",staffAt(start,end),group,pre);
+    const [start,end,,title,group,pre,,,,details]=day.bio;
+    add(start,end,title,details?.location,staffAt(start,end),group,pre);
   }
   return rows.sort((a,b)=>a.start-b.start||a.end-b.end);
 }
