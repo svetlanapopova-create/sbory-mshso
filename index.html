@@ -332,8 +332,14 @@ const DAYS=[
     820,
     "proj",
     "Психологическая сонастройка",
-    "Ляпунова А.",
-    0
+    "Ковалёва М., Воронцова С., Ляпунова А.",
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Актовый зал"
+    }
    ],
    [
     830,
@@ -415,7 +421,13 @@ const DAYS=[
     "proj",
     "Анализ информации",
     "Попова С., Хвастунова А.",
-    0
+    0,
+    null,
+    null,
+    null,
+    {
+     "location": "Актовый зал"
+    }
    ],
    [
     920,
@@ -685,7 +697,7 @@ const DAYS=[
     1000,
     "proj",
     "Встреча с психологами",
-    "",
+    "Ковалёва М., Воронцова С.",
     0
    ],
    [
@@ -879,7 +891,7 @@ const DAYS=[
     990,
     "proj",
     "Заключительная рефлексия",
-    "Психологи",
+    "Ковалёва М., Воронцова С.",
     0,
     null,
     null,
@@ -1383,30 +1395,6 @@ const STAFF=[
   "q": "Публичные выступления"
  },
  {
-  "n": "Психологи",
-  "c": "--proj",
-  "d": [
-   [],
-   [],
-   [
-    [
-     980,
-     1000,
-     "s"
-    ]
-   ],
-   [],
-   [
-    [
-     970,
-     990,
-     "s"
-    ]
-   ]
-  ],
-  "q": "Встреча в среду и заключительная рефлексия"
- },
- {
   "n": "Специалист биоимпеданса",
   "c": "--ext",
   "d": [
@@ -1562,6 +1550,66 @@ const STAFF=[
    []
   ],
   "q": "Анализ информации со старшими"
+ },
+ {
+  "n": "Ковалёва М.",
+  "c": "--proj",
+  "d": [
+   [
+    [
+     800,
+     820,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     980,
+     1000,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     970,
+     990,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Сонастройка, встреча в среду и рефлексия"
+ },
+ {
+  "n": "Воронцова С.",
+  "c": "--proj",
+  "d": [
+   [
+    [
+     800,
+     820,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     980,
+     1000,
+     "s"
+    ]
+   ],
+   [],
+   [
+    [
+     970,
+     990,
+     "s"
+    ]
+   ]
+  ],
+  "q": "Сонастройка, встреча в среду и рефлексия"
  }
 ];
 const hh=dur;
@@ -1685,6 +1733,7 @@ function fitWeekCards(){
  ).join(', '));
 }
 
+const showLead=new Set(["Анализ информации", "Встреча с психологами", "Заключительная рефлексия", "Психологическая сонастройка", "Психология"]);
 function renderWeek(days){
  let markup='<div></div>'+days.map(day=>
   `<div class="dayhead"><b>${day.d}</b><span>${day.date}</span></div>`
@@ -1701,7 +1750,7 @@ function renderWeek(days){
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':'',title==='Биоимпеданс. Замеры'?'bio-measure':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
    const hint=esc([time+' '+title,note,room].filter(Boolean).join(' · '));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${room||note&&title==="Биоимпеданс. Замеры"?`<small>${esc([room,title==="Биоимпеданс. Замеры"?note:""].filter(Boolean).join(" · "))}</small>`:""}</div>`;
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${room||note&&(title==="Биоимпеданс. Замеры"||showLead.has(title))?`<small>${esc([room,title==="Биоимпеданс. Замеры"||showLead.has(title)?note:""].filter(Boolean).join(" · "))}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
@@ -1730,6 +1779,7 @@ renderSchedule();
 const orgDay=document.getElementById("org-day"), orgRoom=document.getElementById("org-room");
 const orgRows=document.getElementById("org-rows");
 const orgUnknown="Уточнить";
+const psychologyPrep={"Психологическая сонастройка": "Знакомство со специалистами и анонс психологических встреч. Разминка «Круги на воде» с ассоциациями к словам о психологии. Заполнить рабочие листы «Треугольник ожиданий» и оставить у психологов до пятницы.", "Психология": "Старшие участницы выбирают тему и выполняют упражнение. Варианты тем: планирование, достижение цели, отношения, баланс сфер жизни, интересы и хобби.", "Встреча с психологами": "Презентация «Что такое психология?»: миф о Психее, специалисты, направления и факты. Затем ответы на вопросы участниц.", "Заключительная рефлексия": "Рефлексия в двух группах. Вернуться к рабочим листам «Треугольник ожиданий» и обсудить, какие ожидания были и какие реализовались."};
 const orgStationStaff=[
   ["Кабинет 404","Мачучин И. А."],["Лестница","Колоскова Е. В."],["Спортивный зал","Мясоедова А. К."]
 ];
@@ -1737,7 +1787,7 @@ const orgStationStaff=[
 function orgDayRows(day,index){
   const rows=[];
   const staffAt=(start,end)=>STAFF.filter(person=>person.d[index].some(([a,b])=>a===start&&b===end)).map(person=>person.n).join(", ");
-  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||defaultRoom(title)||orgUnknown,staff:staff||orgUnknown,group,pre});
+  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||defaultRoom(title)||orgUnknown,staff:staff||orgUnknown,group,pre,prep:psychologyPrep[title]||""});
   const senior=day.senior||[];
   const schoolGroup=(start,end)=>senior.some(([a,b])=>a<end&&b>start)?"Школьницы":"Все участницы";
   let previous=START;
