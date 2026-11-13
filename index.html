@@ -1573,6 +1573,23 @@ for(const p of STAFF){let sol=0,dash=0;
 document.getElementById("staff").innerHTML=s;
 document.getElementById("staffm").innerHTML=STAFF.map(p=>`<div class="pc" style="--c:var(${p.c})"><b>${p.n}</b><small>${p.q}</small><ul>`+p.d.map((day,i)=>day.length?`<li><span>${DAYS[i].d}</span><span>${day.map(([a,b,k])=>`<span class="${k}">${fmt(a)}–${fmt(b)}${k==="d"?"*":""}</span>`).join(", ")}</span></li>`:"").join("")+'</ul></div>').join("");
 
+let publishedOrganisation;
+const defaultRoom=title=>title==='Обед'||title==='Ужин'?'Столовая':title==='Свободное время'?'Рекреация 4-го этажа':'';
+function eventRooms(day,event,group){
+ const [start,end,category,title,,,,lane,total]=event;
+ let matches=publishedOrganisation?.slots.filter(row=>row.day==='2026-11-'+day.date.slice(0,2)&&row.start===fmt(start)&&row.end===fmt(end));
+ if(category==='train'&&!matches?.some(row=>row.title===title)){
+   matches=publishedOrganisation?.slots.filter(row=>row.day==='2026-11-'+day.date.slice(0,2)&&row.title===title&&row.start<=fmt(start)&&row.end>=fmt(end));
+ }
+ const specific=matches?.filter(row=>row.title===title);
+ let relevant=specific?.length?specific:matches?.filter(row=>row.group.startsWith('Группа ')&&['Предметная карусель','Математика','Работа в группе над проектом'].includes(title));
+ if(title==='Свободное время'&&total) relevant=relevant?.filter(row=>row.group===(lane===1?'Старшие':'Школьницы'));
+ if(group!==null&&relevant?.some(row=>row.group==='Группа '+(group+1))){
+   relevant=relevant.filter(row=>row.group==='Группа '+(group+1));
+ }
+ if(relevant?.length) return [...new Set(relevant.map(row=>row.room?.trim()).filter(Boolean))].join(' · ');
+ return event[9]?.location||defaultRoom(title);
+}
 const routeView=document.getElementById('route-view');
 function scheduleDays(){
  const [group,route]=routeView.value.split(':');
@@ -1586,16 +1603,15 @@ function scheduleDays(){
    end=finish;
    if(variants?.groups && selection.g!==null){
     const [subject,teacher,room]=variants.groups[selection.g];
-    events.push([start,finish,category,subject,[teacher,room,note].filter(Boolean).join(' · '),provisional]);
+    events.push([start,finish,category,subject,[teacher,note].filter(Boolean).join(' · '),provisional,0,undefined,undefined,{location:room}]);
    }else{
-    const room=variants?.location;
-    events.push(room?[start,finish,category,title,[note,room].filter(Boolean).join(' · '),provisional]:entry);
+    events.push(entry);
    }
   }
 
   function inLane(event,lane){
    const [start,finish,category,title,note,pre]=event;
-   return [start,finish,category,title,note,pre,0,lane,2];
+   return [start,finish,category,title,note,pre,0,lane,2,event[9]];
   }
   let visible=events;
   if(day.senior?.length){
@@ -1620,7 +1636,11 @@ function scheduleDays(){
     ]:[event]);
    }
   }
-  return {...day,ev:visible.sort((a,b)=>a[0]-b[0]||(a[7]??0)-(b[7]??0))};
+  return {...day,ev:visible.sort((a,b)=>a[0]-b[0]||(a[7]??0)-(b[7]??0)).map(event=>{
+   const entry=event.slice();
+   entry[10]=eventRooms(day,event,selection.g);
+   return entry;
+  })};
  });
 }
 function fitWeekCards(){
@@ -1676,12 +1696,12 @@ function renderWeek(days){
  markup+='</div>';
  for(const day of days){
   markup+='<div class="col">';
-  for(const [start,end,category,title,note,pre,,lane,total] of day.ev){
+  for(const [start,end,category,title,note,pre,,lane,total,,room] of day.ev){
    const time=fmt(start)+'–'+fmt(end);
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':'',title==='Биоимпеданс. Замеры'?'bio-measure':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
-   const hint=esc(time+' '+title+(note?' · '+note:''));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${note&&title==="Биоимпеданс. Замеры"?`<small>${esc(note)}</small>`:""}</div>`;
+   const hint=esc([time+' '+title,note,room].filter(Boolean).join(' · '));
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${room||note&&title==="Биоимпеданс. Замеры"?`<small>${esc([room,title==="Биоимпеданс. Замеры"?note:""].filter(Boolean).join(" · "))}</small>`:""}</div>`;
   }
   markup+='</div>';
  }
@@ -1702,7 +1722,7 @@ document.fonts?.ready.then(fitWeekCards);
 function renderSchedule(){
  const days=scheduleDays();
  renderWeek(days);
- drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre])=>`<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${sub?`<small>${esc(sub)}</small>`:''}</span></li>`).join('')};drawAg();
+ drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>`<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${sub||room?`<small>${esc([sub,room].filter(Boolean).join(" · "))}</small>`:''}</span></li>`).join('')};drawAg();
 }
 routeView.addEventListener('change',renderSchedule);
 renderSchedule();
@@ -1717,7 +1737,7 @@ const orgStationStaff=[
 function orgDayRows(day,index){
   const rows=[];
   const staffAt=(start,end)=>STAFF.filter(person=>person.d[index].some(([a,b])=>a===start&&b===end)).map(person=>person.n).join(", ");
-  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||orgUnknown,staff:staff||orgUnknown,group,pre});
+  const add=(start,end,title,room,staff,group,pre)=>rows.push({start,end,title,room:room||defaultRoom(title)||orgUnknown,staff:staff||orgUnknown,group,pre});
   const senior=day.senior||[];
   const schoolGroup=(start,end)=>senior.some(([a,b])=>a<end&&b>start)?"Школьницы":"Все участницы";
   let previous=START;
@@ -1749,14 +1769,14 @@ const orgMaterials=document.getElementById('org-materials');
 const orgSyncNote=document.getElementById('org-sync-note');
 const orgApi='https://sqcgoomuxebgtkysiiap.supabase.co/rest/v1/rpc/m1_organisation';
 const orgKey='sb_publishable_ghhXKcliBSKM_bZSvy9nTg_OvwmcxX6';
-let orgPublished, orgLoading=false;
+let orgLoading=false;
 const orgMinutes=time=>Number(time.slice(0,2))*60+Number(time.slice(3,5));
 orgDay.replaceChildren(...DAYS.map((day,index)=>new Option(day.d+" · "+day.date,index)));
 orgDay.value=String(cur);
 function renderOrganisation(){
   const index=Number(orgDay.value);
   const day='2026-11-'+DAYS[index].date.slice(0,2);
-  const rows=orgPublished?orgPublished.slots.filter(row=>row.day===day).map(row=>({
+  const rows=publishedOrganisation?publishedOrganisation.slots.filter(row=>row.day===day).map(row=>({
     ...row,start:orgMinutes(row.start),end:orgMinutes(row.end),room:row.room||orgUnknown,staff:row.staff||orgUnknown
   })):orgWeek[index];
   const room=orgRoom.value;
@@ -1773,7 +1793,7 @@ function renderOrganisation(){
   ).join("");
 }
 async function refreshOrganisation(){
-  if(orgLoading||document.hidden||document.querySelector('[data-tab="org"]').hidden)return;
+  if(orgLoading||document.hidden||['org','week'].every(tab=>document.querySelector('[data-tab="'+tab+'"]').hidden))return;
   orgLoading=true;
   try{
     const response=await fetch(orgApi,{method:'POST',headers:{apikey:orgKey,'Content-Type':'application/json'},body:'{}',cache:'no-store',signal:AbortSignal.timeout(8000)});
@@ -1781,12 +1801,13 @@ async function refreshOrganisation(){
     const published=await response.json();
     if(!published?.revision||!Array.isArray(published.slots)||!Array.isArray(published.materials))throw new Error('Invalid organisation');
     orgSyncNote.hidden=true;
-    if(published.revision===orgPublished?.revision)return;
-    orgPublished=published;
+    if(published.revision===publishedOrganisation?.revision)return;
+    publishedOrganisation=published;
     renderOrganisation();
+    renderSchedule();
     orgMaterials.innerHTML=published.materials.map(({title,text})=>'<article><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p></article>').join('');
   }catch{
-    orgSyncNote.textContent=orgPublished?'Связь прервалась. Показана последняя полученная версия.':'Онлайн-версия недоступна. Показана исходная сетка.';
+    orgSyncNote.textContent=publishedOrganisation?'Связь прервалась. Показана последняя полученная версия.':'Онлайн-версия недоступна. Показана исходная сетка.';
     orgSyncNote.hidden=false;
   }finally{orgLoading=false}
 }
@@ -1811,7 +1832,7 @@ renderOrganisation();
     panes.forEach((p,k)=>p.hidden=k!==i);
     tabs.forEach((t,k)=>t.setAttribute("aria-selected",k===i?"true":"false"));
     try{history.replaceState(null,"","#"+panes[i].dataset.tab)}catch(e){}
-    if(panes[i].dataset.tab==='org')refreshOrganisation();
+    if(panes[i].dataset.tab==='org'||panes[i].dataset.tab==='week')refreshOrganisation();
   }
   tabs.forEach(t=>t.addEventListener("click",()=>show(t.dataset.t)));
   bar.addEventListener("keydown",e=>{const i=tabs.indexOf(document.activeElement);if(i<0)return;const j=e.key==="ArrowRight"?i+1:e.key==="ArrowLeft"?i-1:-1;if(j<0||j>=tabs.length)return;tabs[j].focus();show(tabs[j].dataset.t)});
