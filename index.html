@@ -1036,11 +1036,13 @@ const today=new Date();
 if(today.getFullYear()===2026&&today.getMonth()===10&&today.getDate()>=16&&today.getDate()<=20){
  cur=today.getDate()-16;
 }
+let agendaDay=scheduleDayId(DAYS[cur]);
 let drawAg;
 document.getElementById("daypick").addEventListener("click",event=>{
  const button=event.target.closest("button");
  if(!button)return;
  cur=Number(button.dataset.i);
+ agendaDay=button.dataset.day;
  drawAg();
 });
 
@@ -1760,8 +1762,94 @@ function eventRooms(day,event,group){
  return event[9]?.location||defaultRoom(title);
 }
 const routeView=document.getElementById('route-view');
+
+function scheduleDayId(day){
+ return '2026-11-'+day.date.slice(0,2);
+}
+function availableDays(){
+ const days=new Map(DAYS.map(day=>[scheduleDayId(day),{...day,id:scheduleDayId(day)}]));
+ for(const row of [...(publishedOrganisation?.schedule||[]),...(publishedOrganisation?.slots||[])]){
+  if(days.has(row.day))continue;
+  const date=new Date(row.day+'T12:00:00Z');
+  const label=new Intl.DateTimeFormat('ru-RU',{weekday:'short',timeZone:'UTC'}).format(date);
+  days.set(row.day,{id:row.day,d:label[0].toUpperCase()+label.slice(1),date:row.day.slice(8,10)+'.'+row.day.slice(5,7),ev:[]});
+ }
+ return [...days.values()].sort((a,b)=>a.id.localeCompare(b.id));
+}
+const originalCategories=new Map(DAYS.flatMap(day=>[...day.ev,...(day.senior||[]),...(day.bio?[day.bio]:[])].flatMap(event=>
+ [[event[3],event[2]],...(event[9]?.groups||[]).map(([title])=>[title,event[2]])])));
+function eventCategory(title){
+ if(originalCategories.has(title))return originalCategories.get(title);
+ if(/волейбол|МПГУ/iu.test(title))return 'train';
+ if(/бассейн|плавание|биоимпеданс.*замеры/iu.test(title))return 'ext';
+ if(/медиадень/iu.test(title))return 'media';
+ if(/^(обед|ужин|перерыв|свободное время)/iu.test(title))return 'meal';
+ if(/^(диагностика|математика|биология|физика|информатика|русский|история|английский|лекция)/iu.test(title))return 'acad';
+ return 'proj';
+}
+function liveEventRows(day, group, cohort){
+ let rows=publishedOrganisation.schedule
+  .filter(row=>row.day===day.id&&(!group||row.audience.some(tag=>tag==='all'||tag===cohort||tag==='g'+group)))
+  .map(row=>({...row,s:orgMinutes(row.start),e:orgMinutes(row.end),cat:eventCategory(row.title)}));
+ if(!group){
+  const parallel=new Map(), other=[];
+  for(const row of rows){
+   const tags=row.audience.filter(tag=>/^g[1-3]$/.test(tag));
+   if(!tags.length||row.audience.length!==tags.length||row.title==='Биоимпеданс. Замеры'){
+    other.push(row);
+    continue;
+   }
+   const key=[row.s,row.e,row.cat,Boolean(row.pre)].join('|');
+   if(!parallel.has(key))parallel.set(key,[]);
+   parallel.get(key).push(row);
+  }
+  rows=other;
+  for(const blocks of parallel.values()){
+   const titles=new Set(blocks.map(row=>row.title));
+   const groups=blocks.flatMap(row=>row.audience);
+   const carousel=blocks[0].cat==='acad'&&titles.size>1&&groups.length>=2&&
+    new Set(groups).size===groups.length&&blocks.every(row=>/^(Биология|Физика|Основы проектной деятельности|Английский язык)$/u.test(row.title));
+   if(titles.size===1||carousel){
+    rows.push({...blocks[0],title:carousel?'Предметная карусель':blocks[0].title,
+     room:carousel?'':[...new Set(blocks.map(row=>row.room).filter(Boolean))].join(' · '),audience:groups});
+   }else rows.push(...blocks);
+  }
+ }
+ const measures=rows.filter(row=>row.title==='Биоимпеданс. Замеры');
+ rows=rows.flatMap(row=>{
+  const measurement=row.cat==='train'&&measures.find(m=>m.s>row.s&&m.e===row.e);
+  return measurement?[{...row,e:measurement.s},{...row,s:measurement.s}]:[row];
+ });
+ rows.sort((a,b)=>a.s-b.s||b.e-a.e||
+  Number(a.audience.includes('senior'))-Number(b.audience.includes('senior'))||
+  Number(a.title==='Биоимпеданс. Замеры')-Number(b.title==='Биоимпеданс. Замеры'));
+
+ const lanes=[];
+ let cluster=[];
+ function finishCluster(){
+  for(const row of cluster)row.total=lanes.length>1?lanes.length:0;
+  cluster=[];
+  lanes.length=0;
+ }
+ let latestEnd=0;
+ for(const row of rows){
+  if(row.s>=latestEnd)finishCluster();
+  const available=lanes.findIndex(end=>end<=row.s);
+  row.lane=available<0?lanes.length:available;
+  lanes[row.lane]=row.e;
+  cluster.push(row);
+  latestEnd=Math.max(latestEnd,row.e);
+ }
+ finishCluster();
+ return rows.map(row=>[row.s,row.e,row.cat,row.title,
+  row.title==='Биоимпеданс. Замеры'?row.audience.filter(tag=>/^g[1-3]$/.test(tag)).map(tag=>'Группа '+tag[1]).join(', '):'',
+  row.pre,0,row.lane,row.total,null,row.room||'']);
+}
 function scheduleDays(){
  const [group,route]=routeView.value.split(':');
+ if(Array.isArray(publishedOrganisation?.schedule)){
+  return availableDays().map(day=>({...day,ev:liveEventRows(day,group,route)}));
+ }
  const selection={person:group?Number(group):null,g:group?Number(group)-1:null,mon:route||'all'};
  return DAYS.map(day=>{
   const events=[];
@@ -1812,10 +1900,11 @@ function scheduleDays(){
   })};
  });
 }
+let weekStart=START,weekEnd=END;
 function fitWeekCards(){
  if(!wk.clientWidth)return;
  const cards=[...wk.querySelectorAll('.ev[data-start]')];
- const hours=Array.from({length:(END-START)/60+1},(_,i)=>START+60*i);
+ const hours=Array.from({length:(weekEnd-weekStart)/60+1},(_,i)=>weekStart+60*i);
  const stops=new Set(hours);
  const endings=new Map();
  for(const card of cards)card.style.height='auto';
@@ -1828,10 +1917,10 @@ function fitWeekCards(){
   endings.set(end,constraints);
  }
  // Each time has one position shared by all five days. Short slots can grow to fit their labels.
- const positions=new Map([[START,0]]);
- let prev=START;
+ const positions=new Map([[weekStart,0]]);
+ let prev=weekStart;
  for(const time of [...stops].sort((a,b)=>a-b)){
-  if(time===START)continue;
+  if(time===weekStart)continue;
   let position=positions.get(prev)+(time-prev)*K;
   for(const {start,height} of endings.get(time)||[]){
    position=Math.max(position,positions.get(start)+height);
@@ -1848,18 +1937,23 @@ function fitWeekCards(){
  for(const tick of wk.querySelectorAll('.axis [data-time]')){
   tick.style.top=positions.get(Number(tick.dataset.time))+'px';
  }
- wk.style.setProperty('--week-height',positions.get(END)+'px');
+ wk.style.setProperty('--week-height',positions.get(weekEnd)+'px');
  wk.style.setProperty('--hour-lines',hours.slice(0,-1).map(hour=>
   'linear-gradient(var(--line),var(--line)) 0 '+positions.get(hour)+'px / 100% 1px no-repeat'
  ).join(', '));
 }
 
 function renderWeek(days){
+ const events=days.flatMap(day=>day.ev);
+ weekStart=Math.floor(Math.min(START,...events.map(row=>row[0]))/60)*60;
+ weekEnd=Math.ceil(Math.max(END,...events.map(row=>row[1]))/60)*60;
+ wk.style.gridTemplateColumns='48px repeat('+days.length+',minmax(160px,1fr))';
+ wk.style.minWidth=Math.max(900,48+days.length*166)+'px';
  let markup='<div></div>'+days.map(day=>
   `<div class="dayhead"><b>${day.d}</b><span>${day.date}</span></div>`
  ).join('');
  markup+='<div class="axis">';
- for(let time=START;time<=END;time+=60){
+ for(let time=weekStart;time<=weekEnd;time+=60){
   markup+=`<span data-time="${time}">${fmt(time)}</span>`;
  }
  markup+='</div>';
@@ -1891,8 +1985,10 @@ document.fonts?.ready.then(fitWeekCards);
 
 function renderSchedule(){
  const days=scheduleDays();
+ const dayIndex=days.findIndex(day=>(day.id||scheduleDayId(day))===agendaDay);
+ cur=dayIndex<0?0:dayIndex;
  renderWeek(days);
- drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>{
+ drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" data-day="${x.id||scheduleDayId(x)}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>{
    const details=scheduleDetails(t,sub,room);
    return `<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${details?`<small>${esc(details)}</small>`:''}</span></li>`;
   }).join('')};drawAg();
@@ -1944,14 +2040,36 @@ const orgApi='https://sqcgoomuxebgtkysiiap.supabase.co/rest/v1/rpc/m1_organisati
 const orgKey='sb_publishable_ghhXKcliBSKM_bZSvy9nTg_OvwmcxX6';
 let orgLoading=false;
 const orgMinutes=time=>Number(time.slice(0,2))*60+Number(time.slice(3,5));
-orgDay.replaceChildren(...DAYS.map((day,index)=>new Option(day.d+" · "+day.date,index)));
-orgDay.value=String(cur);
+orgDay.replaceChildren(...availableDays().map(day=>new Option(day.d+" · "+day.date,day.id)));
+orgDay.value=scheduleDayId(DAYS[cur]);
+function renderPublishedTotals(schedule){
+ const blocks=schedule.map(row=>({...row,start:orgMinutes(row.start),end:orgMinutes(row.end),category:eventCategory(row.title)}));
+ function minutes(matches){
+  let total=0, lastDay, lastEnd=0;
+  for(const row of blocks.filter(matches).sort((a,b)=>a.day.localeCompare(b.day)||a.start-b.start)){
+   if(row.day!==lastDay){lastDay=row.day;lastEnd=0}
+   total+=Math.max(0,row.end-Math.max(row.start,lastEnd));
+   lastEnd=Math.max(lastEnd,row.end);
+  }
+  return total;
+ }
+ const lessons=row=>['acad','proj'].includes(row.category);
+ const media=row=>row.category==='media';
+ const volleyball=row=>row.category==='train';
+ const swim=row=>/^(Бассейн|Плавание)/iu.test(row.title);
+ document.querySelectorAll('#sum b').forEach((node,index)=>node.textContent=dur(minutes([lessons,media,volleyball,swim][index])));
+ document.querySelectorAll('#sum2 b').forEach((node,index)=>{
+  node.textContent=dur(minutes(index===0?row=>lessons(row)||media(row):row=>volleyball(row)||swim(row)));
+ });
+}
 function renderOrganisation(){
-  const index=Number(orgDay.value);
-  const day='2026-11-'+DAYS[index].date.slice(0,2);
-  const rows=publishedOrganisation?publishedOrganisation.slots.filter(row=>row.day===day).map(row=>({
+  const day=orgDay.value;
+  const days=availableDays();
+  orgDay.replaceChildren(...days.map(row=>new Option(row.d+" · "+row.date,row.id)));
+  if(days.some(row=>row.id===day))orgDay.value=day;
+  const rows=publishedOrganisation?publishedOrganisation.slots.filter(row=>row.day===orgDay.value).map(row=>({
     ...row,start:orgMinutes(row.start),end:orgMinutes(row.end),room:row.room||orgUnknown,staff:row.staff||orgUnknown
-  })):orgWeek[index];
+  })):orgWeek[DAYS.findIndex(row=>scheduleDayId(row)===orgDay.value)] || [];
   const room=orgRoom.value;
   const rooms=[...new Set(rows.map(row=>row.room))].sort((a,b)=>a===orgUnknown?1:b===orgUnknown?-1:a.localeCompare(b,"ru"));
   orgRoom.replaceChildren(new Option("Все помещения",""),...rooms.map(room=>new Option(room===orgUnknown?"Место уточняется":room,room)));
@@ -1974,10 +2092,11 @@ async function refreshOrganisation(){
     const published=await response.json();
     if(!published?.revision||!Array.isArray(published.slots)||!Array.isArray(published.materials))throw new Error('Invalid organisation');
     orgSyncNote.hidden=true;
-    if(published.revision===publishedOrganisation?.revision)return;
+    if(published.revision===publishedOrganisation?.revision&&published.schedule_revision===publishedOrganisation?.schedule_revision)return;
     publishedOrganisation=published;
     renderOrganisation();
     renderSchedule();
+    if(Array.isArray(published.schedule))renderPublishedTotals(published.schedule);
     orgMaterials.innerHTML=published.materials.map(({title,text})=>{
       const points=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
       const items=points.map(line=>{
