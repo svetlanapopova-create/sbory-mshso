@@ -1729,6 +1729,31 @@ const fullTeacherNames={
   "Колоскова С.": "Колоскова Светлана Владимировна"
 };
 const teacherDisplay=value=>value.split(',').map(name=>fullTeacherNames[name.trim()]||name.trim()).join(', ');
+function scheduleTeacherNames(values){
+ const names=values.flatMap(value=>(value||'').split(/[,;·/\n]+/u)).map(item=>{
+  const name=item.trim();
+  const full=fullTeacherNames[name]||name;
+  const match=full.match(/^(\p{Lu}[\p{L}’'-]+)\s+(\p{Lu})(?:[\p{Ll}-]+|\.)?(?:\s*(\p{Lu})(?:[\p{Ll}-]+|\.)?)?$/u);
+  if(!match)return '';
+  const [,surname,first,middle]=match;
+  return surname+' '+first+'.'+(middle?' '+middle+'.':'');
+ });
+ return [...new Set(names.filter(Boolean))].join(', ');
+}
+function eventStaff(rows,start,end,category,title,groups=[]){
+ const matches=rows.filter(row=>{
+  if(row.title!==title&&!(title==='Предметная карусель'&&row.group.startsWith('Группа ')))return false;
+  return category==='train'?row.start<=start&&row.end>=end:row.start===start&&row.end===end;
+ });
+ const relevant=groups.length?matches.filter(row=>
+  groups.includes(row.group)||!/^(Группа [1-3]|Школьницы|Старшие)$/u.test(row.group)
+ ):matches;
+ return relevant.map(row=>row.staff);
+}
+function scheduleMeta(details,teachers){
+ return (details?'<small>'+esc(details)+'</small>':'')+
+  (teachers?'<small class="ev-teachers">'+esc(teachers)+'</small>':'');
+}
 function renderTeam(people=STAFF,days=DAYS){
  const sessions=people.flatMap(person=>person.d.flat());
  const first=Math.min(START,...sessions.map(row=>row[0]));
@@ -1815,9 +1840,16 @@ function eventCategory(title){
  return 'proj';
 }
 function liveEventRows(day, group, cohort){
+ const staffSlots=publishedOrganisation.slots.filter(slot=>slot.day===day.id);
+ const audienceGroups={school:'Школьницы',senior:'Старшие',g1:'Группа 1',g2:'Группа 2',g3:'Группа 3'};
  let rows=publishedOrganisation.schedule
   .filter(row=>row.day===day.id&&(!group||row.audience.some(tag=>tag==='all'||tag===cohort||tag==='g'+group)))
-  .map(row=>({...row,s:orgMinutes(row.start),e:orgMinutes(row.end),cat:eventCategory(row.title)}));
+  .map(row=>{
+   const cat=eventCategory(row.title);
+   const groups=row.audience.includes('all')?[]:row.audience.map(tag=>audienceGroups[tag]).filter(Boolean);
+   return {...row,s:orgMinutes(row.start),e:orgMinutes(row.end),cat,
+    staff:eventStaff(staffSlots,row.start,row.end,cat,row.title,groups)};
+  });
  if(!group){
   const parallel=new Map(), other=[];
   for(const row of rows){
@@ -1838,7 +1870,8 @@ function liveEventRows(day, group, cohort){
     new Set(groups).size===groups.length&&blocks.every(row=>/^(Биология|Физика|Основы проектной деятельности|Английский язык)$/u.test(row.title));
    if(titles.size===1||carousel){
     rows.push({...blocks[0],title:carousel?'Предметная карусель':blocks[0].title,
-     room:carousel?'':[...new Set(blocks.map(row=>row.room).filter(Boolean))].join(' · '),audience:groups});
+     room:carousel?'':[...new Set(blocks.map(row=>row.room).filter(Boolean))].join(' · '),
+     audience:groups,staff:blocks.flatMap(row=>row.staff)});
    }else rows.push(...blocks);
   }
  }
@@ -1870,7 +1903,7 @@ function liveEventRows(day, group, cohort){
  finishCluster();
  return rows.map(row=>[row.s,row.e,row.cat,row.title,
   row.title==='Биоимпеданс. Замеры'?row.audience.filter(tag=>/^g[1-3]$/.test(tag)).map(tag=>'Группа '+tag[1]).join(', '):'',
-  row.pre,0,row.lane,row.total,null,row.room||'']);
+  row.pre,0,row.lane,row.total,null,row.room||'',scheduleTeacherNames(row.staff)]);
 }
 function scheduleDays(){
  const [group,route]=routeView.value.split(':');
@@ -1920,9 +1953,16 @@ function scheduleDays(){
     ]:[event]);
    }
   }
+  const groups=selection.g===null?[]:['Группа '+(selection.g+1),selection.mon==='senior'?'Старшие':'Школьницы'];
+  const date='2026-11-'+day.date.slice(0,2);
+  const staffSlots=publishedOrganisation
+   ? publishedOrganisation.slots.filter(row=>row.day===date)
+   : orgWeek[DAYS.indexOf(day)].map(row=>({...row,start:fmt(row.start),end:fmt(row.end)}));
   return {...day,ev:visible.sort((a,b)=>a[0]-b[0]||(a[7]??0)-(b[7]??0)).map(event=>{
    const entry=event.slice();
    entry[10]=eventRooms(day,event,selection.g);
+   const [start,finish,category,title]=entry;
+   entry[11]=scheduleTeacherNames(eventStaff(staffSlots,fmt(start),fmt(finish),category,title,groups));
    return entry;
   })};
  });
@@ -1986,13 +2026,13 @@ function renderWeek(days){
  markup+='</div>';
  for(const day of days){
   markup+='<div class="col">';
-  for(const [start,end,category,title,note,pre,,lane,total,,room] of day.ev){
+  for(const [start,end,category,title,note,pre,,lane,total,,room,teachers] of day.ev){
    const time=fmt(start)+'–'+fmt(end);
    const classes=['ev',title==='Свободное время'?'break':'',pre?'pre':'',total?'lane':'',title==='Биоимпеданс. Замеры'?'bio-measure':''].filter(Boolean).join(' ');
    const width=total?`left:${lane*100/total}%;width:${100/total}%;right:auto;`:'';
    const details=scheduleDetails(title,note,room);
-   const hint=esc([time+' '+title,details].filter(Boolean).join(' · '));
-   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${details?`<small>${esc(details)}</small>`:""}</div>`;
+   const hint=esc([time+' '+title,details,teachers].filter(Boolean).join(' · '));
+   markup+=`<div class="${classes}" data-start="${start}" data-end="${end}" style="--c:var(${COL[category]});${width}" title="${hint}"><time class="ev-time">${time}</time><b>${esc(title)}</b>${scheduleMeta(details,teachers)}</div>`;
   }
   markup+='</div>';
  }
@@ -2015,13 +2055,12 @@ function renderSchedule(){
  const dayIndex=days.findIndex(day=>(day.id||scheduleDayId(day))===agendaDay);
  cur=dayIndex<0?0:dayIndex;
  renderWeek(days);
- drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" data-day="${x.id||scheduleDayId(x)}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room])=>{
+ drawAg=()=>{document.getElementById('daypick').innerHTML=days.map((x,i)=>`<button type="button" data-i="${i}" data-day="${x.id||scheduleDayId(x)}" aria-pressed="${i===cur}">${x.d}<span>${x.date}</span></button>`).join('');document.getElementById('ag').innerHTML=days[cur].ev.map(([s,e,cat,t,sub,pre,,,,,room,teachers])=>{
    const details=scheduleDetails(t,sub,room);
-   return `<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${details?`<small>${esc(details)}</small>`:''}</span></li>`;
+   return `<li class="${pre?'pre':''}" style="--c:var(${COL[cat]})"><span class="tm">${fmt(s)}–${fmt(e)}</span><span><b>${esc(t)}</b>${scheduleMeta(details,teachers)}</span></li>`;
   }).join('')};drawAg();
 }
 routeView.addEventListener('change',renderSchedule);
-renderSchedule();
 
 const orgDay=document.getElementById("org-day"), orgRoom=document.getElementById("org-room");
 const orgRows=document.getElementById("org-rows");
@@ -2061,6 +2100,7 @@ function orgDayRows(day,index){
 }
 
 const orgWeek=DAYS.map(orgDayRows);
+renderSchedule();
 const orgMaterials=document.getElementById('org-materials');
 const orgSyncNote=document.getElementById('org-sync-note');
 const orgApi='https://sqcgoomuxebgtkysiiap.supabase.co/rest/v1/rpc/m1_organisation';
