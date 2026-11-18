@@ -1849,6 +1849,7 @@ function availableDays(){
 const originalCategories=new Map(DAYS.flatMap(day=>[...day.ev,...(day.senior||[]),...(day.bio?[day.bio]:[])].flatMap(event=>
  [[event[3],event[2]],...(event[9]?.groups||[]).map(([title])=>[title,event[2]])])));
 function eventCategory(title){
+ if(title==='Секреты волейбола')return 'proj';
  if(originalCategories.has(title))return originalCategories.get(title);
  if(/волейбол|МПГУ/iu.test(title))return 'train';
  if(/бассейн|плавание|биоимпеданс.*замеры/iu.test(title))return 'ext';
