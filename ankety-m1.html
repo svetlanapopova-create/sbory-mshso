@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<title>Обратная связь · М1 × МШСО</title>
+<style>
+:root{color-scheme:light;font:16px/1.55 system-ui,sans-serif;color:#16233c;background:#edf2f8}
+*{box-sizing:border-box}
+body{margin:0}
+main{width:min(100% - 2rem,44rem);margin:2.5rem auto 4rem}
+header,section{padding:clamp(1rem,4vw,2rem);background:#fff;border:1px solid #d7e0eb;border-radius:1rem;margin-bottom:1rem}
+header{background:#142d53;color:#fff;border-color:#142d53}
+.eyebrow{color:#c6d9f5;margin:0;font-weight:650}
+h1{font-size:clamp(1.8rem,6vw,2.7rem);line-height:1.12;margin:.5rem 0 .75rem}
+h2{font-size:1.35rem;margin:0 0 1.2rem;color:#173b69}
+h3{font-size:1rem;margin:1.5rem 0 .5rem}
+p{margin:.5rem 0}
+fieldset{border:0;margin:0 0 1.25rem;padding:0;min-inline-size:0}
+legend{font-weight:650;margin-bottom:.4rem;padding:0}
+label{display:flex;align-items:center;gap:.6rem;min-height:2.1rem}
+input{accent-color:#214e92}
+textarea{display:block;width:100%;font:inherit;resize:vertical;border:1px solid #8598b2;border-radius:.5rem;padding:.6rem}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:.35rem}
+.scale label{justify-content:center;background:#eef3fa;border-radius:.4rem;padding:.4rem .1rem;gap:.25rem}
+.ends{display:flex;justify-content:space-between;gap:1rem;font-size:.875rem;color:#445777;margin:.4rem 0}
+.ends span:last-child{text-align:right}
+button{font:inherit;font-weight:700;background:#214e92;color:white;border:0;padding:.85rem 1.5rem;border-radius:.65rem;cursor:pointer}
+button:disabled{opacity:.65;cursor:default}
+:focus-visible{outline:3px solid #bd600c;outline-offset:3px}
+nav{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+a{color:#184485}
+[hidden]{display:none!important}
+@media(max-width:380px){main{width:calc(100% - 1rem);margin-top:.5rem}}
+</style>
+<main>
+<header><p class="eyebrow">М1 × МШСО · 16–20 ноября 2026</p><h1>Обратная связь</h1><p id="intro"></p></header>
+<nav id="preview" hidden><a href="?preview=student">Анкета участниц</a><a href="?preview=teacher">Анкета преподавателей</a></nav>
+<p id="status" role="status" tabindex="-1"></p>
+<form hidden><div id="questions"></div><button>Отправить ответы</button></form>
+<noscript>Чтобы открыть анкету, включите JavaScript в браузере.</noscript>
+</main>
+<script>
+const scale = (id, label, low, high) => [id, label, 'scale', [low, high]];
+const choice = (id, label, ...options) => [id, label, 'radio', options];
+const multi = (id, label, ...options) => [id, label, 'checkbox', options];
+const note = (id, label) => [id, label, 'text'];
+const surveys = {
+  student: [
+    ['До начала и в первые дни', [
+      ['1', 'Насколько до начала модуля тебе было понятно следующее?', 'heading'],
+      ...['Что будет происходить на занятиях','Расписание и время активностей','Зачем организована эта неделя','К кому обращаться с вопросами'].map((label,i) => scale('1.'+(i+1),label,'Совсем непонятно','Полностью понятно')),
+      scale('2','Насколько легко тебе было освоиться в первые день-два?','Очень трудно','Очень легко'),
+      ['3','Что помогало или мешало освоиться? Можно выбрать несколько вариантов.','heading'],
+      multi('3a','Помогало','Знакомые люди','Объяснения взрослых','Поддержка команды','Понятное расписание'),
+      multi('3b','Мешало','Много всего нового','Изменения в планах','Незнакомые взрослые','Неясные ожидания'),
+    ]],
+    ['Расписание и переходы', [
+      scale('4','В течение недели было понятно, куда и к какому времени нужно приходить?','Почти никогда','Практически всегда'),
+      choice('5','Если расписание менялось, как ты об этом узнавала?','Заранее','Обычно вовремя','Слишком поздно','Иногда не узнавала','Не замечала изменений'),
+      choice('6','Хватало ли времени между активностями, чтобы переодеться, поесть и перейти?','Да','Не всегда','Нет'),
+      scale('7','Насколько удобным было расписание недели в целом?','Совсем неудобно','Очень удобно'),
+    ]],
+    ['Связь с организаторами', [
+      choice('8','Было ли понятно, к кому обратиться с организационным вопросом?','Да','Иногда','Нет'),
+      choice('9','Если ты обращалась за помощью, удалось ли решить вопрос?','Да','Частично','Нет','Не обращалась'),
+      note('10','Было ли что-то, о чём ты хотела спросить, но не знала, кому или как?'),
+    ]],
+    ['Нагрузка и комфорт', [
+      choice('11','Хватало ли времени на отдых и восстановление в течение дня?','Да','Не всегда','Нет'),
+      scale('12','Насколько утомительной была неделя с тренировками и занятиями?','Совсем не утомительной','Очень утомительной'),
+      multi('13','Какие условия хотелось бы улучшить? Можно выбрать несколько.','Перерывы и отдых','Питание / время еды','Переодевание и душ','Помещения и оборудование','Сообщения об изменениях','Переходы между занятиями','Ничего менять не нужно','Другое'),
+      note('13_other','Уточни, что ещё хотелось бы улучшить'),
+    ]],
+    ['Что сохранить и что изменить', [
+      note('14','Что в организации недели было особенно удобным или удачным?'),
+      note('15','Что больше всего мешало или создавало неудобства?'),
+      note('16','Какие две вещи ты изменила бы в организации следующего модуля?'),
+      note('17','Что хотелось бы узнать или получить до приезда, чтобы легче освоиться?'),
+    ]],
+  ],
+  teacher: [
+    ['Подготовка и понимание задачи', [
+      note('name','ФИО (по желанию)'),
+      note('format','Предмет / формат участия'),
+      scale('1','Насколько до начала модуля вам были понятны его образовательные цели и ожидаемые результаты?','Совершенно неясны','Полностью понятны'),
+      note('2','Как вы первоначально понимали свою задачу? Изменилось ли это понимание в процессе работы?'),
+      note('3','Какой информации или предварительной подготовки вам не хватило?'),
+    ]],
+    ['Работа с участницами', [
+      scale('4','Насколько легко вам удалось установить контакт с участницами и вовлечь их в работу?','Очень сложно','Очень легко'),
+      note('4_comment','Комментарий к оценке контакта и вовлечения'),
+      note('5','Что вы успели понять об их знаниях, интересах и способностях за время модуля? Чего понять не удалось?'),
+      note('6','Какие форматы или конкретные приёмы вызвали наибольшую вовлечённость? А какие не сработали?'),
+    ]],
+    ['Образовательная модель', [
+      scale('7','Насколько предложенный формат короткого очного модуля подходит для содержательной образовательной работы?','Почти не подходит','Очень хорошо подходит'),
+      note('7_comment','Комментарий к оценке формата'),
+      note('8','Какой результат работы с участницами вы считаете наиболее значимым? Приведите пример, если возможно.'),
+      note('9','Какие задачи нецелесообразно ставить перед преподавателями в рамках такого короткого модуля?'),
+    ]],
+    ['Организация и следующий модуль', [
+      multi('10','Что мешало вам качественно выполнять свою задачу? Отметьте все подходящие варианты.','Недостаточная информация о детях','Неясные цели и ожидания','Отсутствие методической подготовки','Недостаток времени','Расписание и его изменения','Оборудование или помещения','Взаимодействие с преподавателями','Недостаточная координация','Ничего существенного не мешало','Другое'),
+      note('10_comment','Комментарий или другая причина'),
+      note('11','Какие изменения в организации следующего модуля вы считаете наиболее важными? Назовите до трёх.'),
+      note('12','Если бы вы снова работали с этой же группой, что сделали бы иначе?'),
+      choice('projects','Участвовали ли вы в межпредметных исследовательских проектах?','Да','Нет'),
+    ]],
+    ['Межпредметные проекты', [
+      note('p1','Понятна ли вам была ваша роль в исследовательской деятельности? Что именно вы должны были обеспечить?'),
+      note('p2','Насколько предложенные темы позволяли организовать настоящее исследование, а не просто учебное задание?'),
+      note('p3','Какие компетенции, ресурсы и условия необходимы человеку, который отвечает за исследовательский проект?'),
+      note('p4','Какая модель взаимодействия предметников и руководителя исследования кажется вам работоспособной?'),
+    ], true],
+  ],
+};
+</script><script>
+const supabaseUrl = "https://sqcgoomuxebgtkysiiap.supabase.co";
+const publishableKey = "sb_publishable_ghhXKcliBSKM_bZSvy9nTg_OvwmcxX6";
+</script><script>
+const params = new URLSearchParams(location.search);
+const preview = params.get('preview');
+const kind = preview || params.get('form');
+const token = location.hash.slice(1);
+const form = document.querySelector('form');
+const status = document.querySelector('#status');
+const questions = document.querySelector('#questions');
+const invitationIsValid = /^[0-9a-f]{64}$/.test(token);
+
+function element(tag, text, parent) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  parent.append(node);
+  return node;
+}
+
+if (Object.hasOwn(surveys, kind) && (preview || invitationIsValid)) {
+  document.querySelector('h1').textContent = kind === 'student'
+    ? 'Как была организована неделя?' : 'Обратная связь преподавателя';
+  document.querySelector('#intro').textContent = kind === 'student'
+    ? 'Помоги нам сделать следующий модуль удобнее. Имя указывать не нужно. Любой вопрос можно пропустить.'
+    : 'Расскажите, что сработало и что стоит изменить в коротких очных модулях М1. Это не оценка вашей работы. Если можете, приводите конкретные ситуации.';
+  for (const [title, fields, projectOnly] of surveys[kind]) {
+    const section = element('section', '', questions);
+    if (projectOnly) {
+      section.id = 'project';
+      section.hidden = true;
+    }
+    element('h2', title, section);
+    for (const [id, label, type, options] of fields) {
+      if (type === 'heading') {
+        element('h3', label, section);
+        continue;
+      }
+      const field = element('fieldset', '', section);
+      element('legend', label, field);
+      if (type === 'text') {
+        const input = element('textarea', '', field);
+        input.name = id;
+        input.rows = 3;
+        input.maxLength = 4000;
+        input.setAttribute('aria-label', label);
+        continue;
+      }
+      const group = element('div', '', field);
+      if (type === 'scale') group.className = 'scale';
+      for (const option of type === 'scale' ? ['1','2','3','4','5'] : options) {
+        const item = element('label', '', group);
+        const input = element('input', '', item);
+        input.type = type === 'scale' ? 'radio' : type;
+        input.name = id;
+        input.value = option;
+        item.append(option);
+      }
+      if (type === 'scale') {
+        const ends = element('div', '', field);
+        ends.className = 'ends';
+        element('span', '1 · '+options[0], ends);
+        element('span', '5 · '+options[1], ends);
+      }
+    }
+  }
+  form.hidden = false;
+  const project = document.querySelector('#project');
+  if (project) form.addEventListener('change', () => {
+    project.hidden = new FormData(form).get('projects') !== 'Да';
+  });
+  if (preview) status.textContent = 'Предпросмотр. Ответы не сохраняются.';
+} else {
+  status.textContent = 'Чтобы заполнить анкету, откройте персональную ссылку из письма.';
+}
+document.querySelector('#preview').hidden = !preview;
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (preview) {
+    status.textContent = 'Предпросмотр завершён. Ответы не отправлены.';
+    status.focus();
+    return;
+  }
+  if (!publishableKey) {
+    status.textContent = 'Приём ответов ещё не настроен. Попробуйте позже.';
+    status.focus();
+    return;
+  }
+  const data = new FormData(form);
+  const answers = {};
+  for (const [, fields, projectOnly] of surveys[kind]) {
+    if (projectOnly && data.get('projects') !== 'Да') continue;
+    for (const [id,,type] of fields) {
+      const values = data.getAll(id).map(value => value.trim()).filter(Boolean);
+      if (values.length) answers[id] = type === 'checkbox' ? values : values[0];
+    }
+  }
+  if (!Object.keys(answers).length) {
+    status.textContent = 'Выберите или заполните хотя бы один ответ.';
+    status.focus();
+    return;
+  }
+  const button = form.querySelector('button');
+  button.disabled = true;
+  try {
+    const response = await fetch(supabaseUrl + '/rest/v1/rpc/m1_submit_survey_202611', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', apikey:publishableKey},
+      body: JSON.stringify({p_kind:kind,p_token:token,p_answers:answers}),
+    });
+    if (!response.ok) throw new Error('submit failed');
+    const result = await response.json();
+    if (result === 'invalid_answers') {
+      status.textContent = 'Проверьте ответы и попробуйте ещё раз.';
+    } else if (result === 'accepted' || result === 'used' || result === 'unavailable') {
+      form.hidden = true;
+      status.textContent = {accepted:'Спасибо! Ответы сохранены.',used:'По этой ссылке ответы уже сохранены.',unavailable:'Ссылка недействительна или приём ответов завершён.'}[result];
+      history.replaceState(null,'',location.pathname + location.search);
+    } else {
+      throw new Error('unexpected response');
+    }
+  } catch {
+    status.textContent = 'Не удалось подтвердить отправку. Попробуйте ещё раз.';
+  } finally {
+    button.disabled = false;
+    status.focus();
+  }
+});
+</script>
+</html>
